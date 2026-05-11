@@ -201,7 +201,7 @@
                 {
                     "id": "countries-pmtiles",
                     "display_name": "Countries",
-                    "visible": true,
+                    "visible": false,
                     "default_style": {
                         "fill-color": "#6A1B9A",
                         "fill-opacity": 0.03
@@ -222,7 +222,7 @@
                 {
                     "id": "regions-pmtiles",
                     "display_name": "Regions / States",
-                    "visible": true,
+                    "visible": false,
                     "default_style": {
                         "fill-color": "#6A1B9A",
                         "fill-opacity": 0.03
@@ -243,7 +243,7 @@
                 {
                     "id": "counties-pmtiles",
                     "display_name": "Counties",
-                    "visible": true,
+                    "visible": false,
                     "default_style": {
                         "fill-color": "#6A1B9A",
                         "fill-opacity": 0.03
