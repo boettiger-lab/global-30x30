@@ -141,8 +141,8 @@
             "collection_id": "irrecoverable-carbon",
             "assets": [
                 {
-                    "id": "v2-vulnerable-2024-cog",
-                    "display_name": "Vulnerable Carbon (2024)",
+                    "id": "v2-irrecoverable-2024-cog",
+                    "display_name": "Irrecoverable Carbon (2024)",
                     "group": "Carbon",
                     "colormap": "reds",
                     "rescale": "0,150",
