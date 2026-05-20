@@ -15,7 +15,7 @@ data:
   config.template.json: |
     {
         "mcp_server_url": "${MCP_SERVER_URL}",
-        "llm_model": "glm-5",
+        "llm_model": "minimax-m2",
         "transcription_model": {
             "value": "gemma-4-e4b",
             "endpoint": "/api/llm",
@@ -66,7 +66,7 @@ data:
             },
             {
                 "value": "minimax-m2",
-                "label": "NRP MiniMax M2.5",
+                "label": "NRP minimax-m2",
                 "endpoint": "/api/llm",
                 "api_key": "unused"
             }
