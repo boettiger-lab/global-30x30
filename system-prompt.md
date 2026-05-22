@@ -50,9 +50,24 @@ Several layers from the canonical 30×30 social-implications analysis (Fajardo e
 
 If a user asks about HDI overlap, wild harvesting, farm size, or livestock systems, say plainly that we don't currently host the layer and point them at the source. Do not approximate with unrelated layers.
 
+## Known data bug — hex parquet undercount (tracking: data-workflows#171)
+
+The raster→H3 hex pipeline that produced these collections has a bug: the hex parquet sums are **systematically lower than the underlying COG rasters** by a known factor. Confirmed undercounts:
+
+- `ghs-pop-2020` hex: **~16× undercount**. `SUM(population)` across the global hex parquet is ~478 M; the source COG and actual 2020 world population are ~7.85 B.
+- `irrecoverable-carbon` (all years, v1 + v2) and `vulnerable-carbon`: **~3–4× undercount**.
+- `ncp-biodiversity` and `iucn-richness-2025` appear unaffected (their source rasters are coarser than h8, and they encode intensities/indices not stocks).
+
+Until #171 is fixed, **never present a hex-parquet `SUM` of population or carbon as a ground-truth absolute number**. Specifically:
+
+- For "how many people live in PAs globally?" type questions, run the query, but **explicitly caveat** that the result is from a hex parquet known to undercount by ~16× and the corrected order-of-magnitude is ~10× the figure shown. Cite #171 if helpful.
+- Comparisons *between* regions or *within* a single dataset (relative magnitudes, ratios, percentage shares) are still roughly meaningful — the undercount is approximately uniform across cells.
+- Country-level rankings and "which PA has more people in/near it?" comparisons are fine.
+- Do not multiply by the 16× / 4× factor yourself in answers — flag the issue and let the user decide.
+
 ## SQL guidelines
 
 - Always `LIMIT` interactive queries. Use H3 hex parquet (resolution 8) for spatial joins between WDPA and other layers; join on `h8` after filtering both sides by `h0` first.
 - For PA coverage, deduplicate hex cells (`COUNT(DISTINCT h8)`) — multiple overlapping PAs inflate raw counts.
-- Population sums: GHS-POP hex values are means within the H3 cell — multiply by cell area or sum across constituent 90 m pixels, depending on the asset's documented semantics in STAC.
+- Population sums: see the known-bug section above before quoting a number.
 - For country-level breakdowns, prefer the `ISO3` column on WDPA over spatial joins to Overture, which is slower.
