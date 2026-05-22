@@ -8,16 +8,20 @@
     },
     "view": {
         "center": [
-            -98,
-            39
+            0,
+            10
         ],
-        "zoom": 4
+        "zoom": 2
     },
     "llm": {
         "user_provided": true,
         "transcription_model": { "value": "gemma" },
         "default_endpoint": "https://openrouter.ai/api/v1",
         "models": [
+            {
+                "value": "anthropic/claude-sonnet-4",
+                "label": "Claude Sonnet"
+            },
             {
                 "value": "qwen/qwen3-235b-a22b",
                 "label": "Qwen3 235B"
@@ -27,116 +31,158 @@
                 "label": "Kimi K2"
             },
             {
-                "value": "minimax/minimax-m1",
-                "label": "MiniMax M1"
-            },
-            {
-                "value": "anthropic/claude-sonnet-4",
-                "label": "Claude Sonnet"
-            },
-            {
                 "value": "google/gemini-2.5-flash",
                 "label": "Gemini Flash"
             }
         ]
     },
     "welcome": {
-        "message": "Hi! I can help you explore protected areas and carbon data. Try asking:",
+        "message": "Hi! I can help you explore the spatial and social context of the Kunming-Montreal 30×30 target (Target 3 of the Global Biodiversity Framework). Try asking:",
         "examples": [
-            "How many acres of GAP Status 1 land does California have?",
-            "What's the average irrecoverable carbon in California's GAP 1+2 protected lands?",
-            "Find the top 5 states by conservation easement acreage.",
-            "Color the fee lands by management type and tell me the top 3 management agencies by acreage."
+            "What percentage of global land is currently inside a designated protected area?",
+            "How many people live inside existing protected areas?",
+            "Show me protected areas in the Amazon and overlay Indigenous and community lands.",
+            "Which ecoregions are least represented in the current protected-area network?",
+            "Show me species richness for mammals and identify the top 5 protected areas by mean richness."
         ]
     },
     "links": {
-        "github": "https://github.com/boettiger-lab/geo-agent-template",
-        "docs": "https://boettiger-lab.github.io/geo-agent/",
-        "carbon": true
+        "github": "https://github.com/boettiger-lab/global-30x30",
+        "docs": "https://boettiger-lab.github.io/geo-agent/"
     },
     "collections": [
         {
-            "collection_id": "pad-us-4.1-fee",
-            "collection_url": "https://s3-west.nrp-nautilus.io/public-padus/padus-4-1/fee/stac-collection.json",
+            "collection_id": "wdpa-december-2025",
             "assets": [
                 {
-                    "id": "fee-pmtiles",
-                    "display_name": "Fee Lands",
-                    "group": "Protected Areas",
+                    "id": "wdpa-pmtiles",
+                    "display_name": "Protected Areas (WDPA)",
+                    "group": "Protected & Conserved Areas",
                     "visible": true,
                     "default_style": {
                         "fill-color": [
                             "match",
-                            [
-                                "get",
-                                "GAP_Sts"
-                            ],
-                            "1",
-                            "#26633A",
-                            "2",
-                            "#3E9C47",
-                            "3",
-                            "#7EB3D3",
-                            "4",
-                            "#BDBDBD",
-                            "#888888"
+                            ["get", "IUCN_CAT"],
+                            ["Ia", "Ib", "II"], "#1b5e20",
+                            ["III", "IV"], "#43a047",
+                            ["V", "VI"], "#a5d6a7",
+                            "#bdbdbd"
                         ],
-                        "fill-opacity": 0.7
+                        "fill-opacity": 0.55
                     },
-                    "default_filter": [
-                        "match",
-                        [
-                            "get",
-                            "GAP_Sts"
-                        ],
-                        [
-                            "1",
-                            "2"
-                        ],
-                        true,
-                        false
-                    ],
+                    "outline_style": {
+                        "line-color": "#1b5e20",
+                        "line-width": 0.4,
+                        "line-opacity": 0.7
+                    },
                     "tooltip_fields": [
-                        "Unit_Nm",
-                        "GAP_Sts",
-                        "Mang_Type"
+                        "NAME_ENG",
+                        "DESIG_ENG",
+                        "IUCN_CAT",
+                        "STATUS",
+                        "ISO3",
+                        "GIS_AREA"
                     ]
                 }
             ]
         },
         {
-            "collection_id": "pad-us-4.1-easement",
-            "collection_url": "https://s3-west.nrp-nautilus.io/public-padus/padus-4-1/easement/stac-collection.json",
+            "collection_id": "landmark-iplc-poly",
             "assets": [
                 {
-                    "id": "easement-pmtiles",
-                    "display_name": "Easements",
-                    "group": "Protected Areas",
+                    "id": "iplc-poly-pmtiles",
+                    "display_name": "Indigenous & Community Lands (LandMark)",
+                    "group": "Indigenous & Community Lands",
+                    "visible": false,
+                    "default_style": {
+                        "fill-color": "#ef6c00",
+                        "fill-opacity": 0.35
+                    },
+                    "outline_style": {
+                        "line-color": "#ef6c00",
+                        "line-width": 0.4,
+                        "line-opacity": 0.7
+                    },
+                    "tooltip_fields": [
+                        "name",
+                        "identity",
+                        "country",
+                        "category",
+                        "form_rec"
+                    ]
+                }
+            ]
+        },
+        {
+            "collection_id": "wwf-ecoregions-2017",
+            "assets": [
+                {
+                    "id": "ecoregion-pmtiles",
+                    "display_name": "Terrestrial Ecoregions (WWF)",
+                    "group": "Biodiversity Context",
                     "visible": false,
                     "default_style": {
                         "fill-color": [
                             "match",
-                            [
-                                "get",
-                                "GAP_Sts"
-                            ],
-                            "1",
-                            "#26633A",
-                            "2",
-                            "#3E9C47",
-                            "3",
-                            "#7EB3D3",
-                            "4",
-                            "#BDBDBD",
-                            "#888888"
+                            ["get", "NNH_NAME"],
+                            "Half Protected", "#2e7d32",
+                            "Nature Could Reach Half Protected", "#9ccc65",
+                            "Nature Could Recover", "#fdd835",
+                            "Nature Imperiled", "#e53935",
+                            "#bdbdbd"
                         ],
-                        "fill-opacity": 0.7
+                        "fill-opacity": 0.4
+                    },
+                    "outline_style": {
+                        "line-color": "#424242",
+                        "line-width": 0.3,
+                        "line-opacity": 0.5
                     },
                     "tooltip_fields": [
-                        "Unit_Nm",
-                        "GAP_Sts",
-                        "Mang_Type"
+                        "ECO_NAME",
+                        "BIOME_NAME",
+                        "REALM",
+                        "NNH_NAME"
                     ]
+                }
+            ]
+        },
+        {
+            "collection_id": "iucn-richness-2025",
+            "assets": [
+                {
+                    "id": "combined-sr-cog",
+                    "display_name": "Species Richness (IUCN, all vertebrates)",
+                    "group": "Biodiversity Context",
+                    "visible": false,
+                    "colormap": "viridis",
+                    "rescale": "0,1500",
+                    "nodata": 0,
+                    "legend_label": "species per cell"
+                },
+                {
+                    "id": "mammals-sr-cog",
+                    "display_name": "Mammal Species Richness (IUCN)",
+                    "group": "Biodiversity Context",
+                    "visible": false,
+                    "colormap": "viridis",
+                    "rescale": "0,200",
+                    "nodata": 0,
+                    "legend_label": "mammal species per cell"
+                }
+            ]
+        },
+        {
+            "collection_id": "ncp-biodiversity",
+            "assets": [
+                {
+                    "id": "ncp-biod-nathab-cog",
+                    "display_name": "NCP — Biodiversity & Natural Habitat (Chaplin-Kramer 2019)",
+                    "group": "Nature's Contributions to People",
+                    "visible": false,
+                    "colormap": "greens",
+                    "rescale": "0,1",
+                    "legend_label": "composite index"
                 }
             ]
         },
@@ -144,36 +190,22 @@
             "collection_id": "irrecoverable-carbon",
             "assets": [
                 {
+                    "id": "v2-vulnerable-2024-cog",
+                    "display_name": "Vulnerable Ecosystem Carbon (2024)",
+                    "group": "Nature's Contributions to People",
+                    "visible": false,
+                    "colormap": "ylorbr",
+                    "rescale": "0,300",
+                    "legend_label": "Mg C / ha"
+                },
+                {
                     "id": "v2-irrecoverable-2024-cog",
                     "display_name": "Irrecoverable Carbon (2024)",
-                    "group": "Carbon",
+                    "group": "Nature's Contributions to People",
+                    "visible": false,
                     "colormap": "reds",
                     "rescale": "0,150",
                     "legend_label": "Mg C / ha"
-                }
-            ]
-        },
-        {
-            "collection_id": "wetlands-glwd-v2",
-            "collection_url": "https://s3-west.nrp-nautilus.io/public-wetlands/glwd/stac-collection.json",
-            "assets": [
-                {
-                    "id": "glwd-main-class-cog",
-                    "display_name": "Wetland Type (GLWD)",
-                    "group": "Land Cover",
-                    "legend_type": "categorical"
-                }
-            ]
-        },
-        {
-            "collection_id": "cgls-lc100-2019",
-            "collection_url": "https://s3-west.nrp-nautilus.io/public-land-cover/cgls-lc100-2019/stac-collection.json",
-            "assets": [
-                {
-                    "id": "cgls-lc100-2019-cog",
-                    "display_name": "Global Land Cover (CGLS-LC100, 2019)",
-                    "group": "Land Cover",
-                    "legend_type": "categorical"
                 }
             ]
         },
@@ -183,19 +215,15 @@
             "assets": [
                 {
                     "id": "ghs-pop-2020-cog",
-                    "display_name": "Global Population Density (GHS-POP 2020)",
+                    "display_name": "Population Density (GHS-POP 2020)",
                     "group": "Population",
+                    "visible": false,
                     "colormap": "magma",
                     "rescale": "0,200",
                     "nodata": 0,
                     "legend_label": "people per 90m cell"
                 }
             ]
-        },
-        {
-            "collection_id": "gbif-derived",
-            "collection_url": "https://s3-west.nrp-nautilus.io/public-gbif/stac-collection.json",
-            "assets": []
         },
         {
             "collection_id": "overture-divisions-countries-2026-02-18",
@@ -235,27 +263,6 @@
                         "line-color": "#6A1B9A",
                         "line-width": 0.8,
                         "line-opacity": 0.6
-                    }
-                }
-            ]
-        },
-        {
-            "collection_id": "overture-divisions-counties-2026-02-18",
-            "collection_url": "https://s3-west.nrp-nautilus.io/public-overturemaps/2026-02-18.0/counties/stac-collection.json",
-            "group": { "name": "Administrative Boundaries", "collapsed": true },
-            "assets": [
-                {
-                    "id": "counties-pmtiles",
-                    "display_name": "Counties",
-                    "visible": false,
-                    "default_style": {
-                        "fill-color": "#6A1B9A",
-                        "fill-opacity": 0.03
-                    },
-                    "outline_style": {
-                        "line-color": "#6A1B9A",
-                        "line-width": 0.4,
-                        "line-opacity": 0.5
                     }
                 }
             ]
