@@ -115,6 +115,64 @@
             ]
         },
         {
+            "collection_id": "icca-registry-polygon",
+            "collection_url": "https://s3-west.nrp-nautilus.io/public-icca/icca-registry/icca-polygon/stac-collection.json",
+            "assets": [
+                {
+                    "id": "icca-polygon-pmtiles",
+                    "display_name": "ICCA Registry — Polygon Sites",
+                    "group": "Indigenous & Community Lands",
+                    "visible": false,
+                    "default_style": {
+                        "fill-color": "#7e3f8f",
+                        "fill-opacity": 0.45
+                    },
+                    "outline_style": {
+                        "line-color": "#3a1a45",
+                        "line-width": 0.6,
+                        "line-opacity": 0.8
+                    },
+                    "tooltip_fields": [
+                        "name_eng",
+                        "iso3",
+                        "gov_type",
+                        "owner_type",
+                        "desig_eng",
+                        "realm",
+                        "comm_name"
+                    ]
+                }
+            ]
+        },
+        {
+            "collection_id": "icca-registry-point",
+            "collection_url": "https://s3-west.nrp-nautilus.io/public-icca/icca-registry/icca-point/stac-collection.json",
+            "assets": [
+                {
+                    "id": "icca-point-pmtiles",
+                    "display_name": "ICCA Registry — Point Sites",
+                    "group": "Indigenous & Community Lands",
+                    "visible": false,
+                    "layer_type": "circle",
+                    "default_style": {
+                        "circle-color": "#7e3f8f",
+                        "circle-radius": 4,
+                        "circle-stroke-color": "#ffffff",
+                        "circle-stroke-width": 1
+                    },
+                    "tooltip_fields": [
+                        "name_eng",
+                        "iso3",
+                        "gov_type",
+                        "owner_type",
+                        "desig_eng",
+                        "realm",
+                        "comm_name"
+                    ]
+                }
+            ]
+        },
+        {
             "collection_id": "wwf-ecoregions-2017",
             "assets": [
                 {
