@@ -52,8 +52,8 @@
     },
     "collections": [
         {
-            "collection_id": "wdpa-december-2025",
-            "collection_url": "https://s3-west.nrp-nautilus.io/public-wdpa/wdpa-december-2025/stac-collection.json",
+            "collection_id": "wdpa",
+            "collection_url": "https://s3-west.nrp-nautilus.io/public-wdpa/wdpa/stac-collection.json",
             "assets": [
                 {
                     "id": "wdpa-pmtiles",
@@ -89,6 +89,7 @@
         },
         {
             "collection_id": "landmark-iplc-poly",
+            "collection_url": "https://s3-west.nrp-nautilus.io/public-indigenous/landmark/iplc-poly-stac.json",
             "assets": [
                 {
                     "id": "iplc-poly-pmtiles",
@@ -174,6 +175,7 @@
         },
         {
             "collection_id": "wwf-ecoregions-2017",
+            "collection_url": "https://s3-west.nrp-nautilus.io/public-ecoregion/stac-collection.json",
             "assets": [
                 {
                     "id": "ecoregion-pmtiles",
@@ -208,6 +210,7 @@
         },
         {
             "collection_id": "iucn-richness-2025",
+            "collection_url": "https://s3-west.nrp-nautilus.io/public-iucn/stac-collection.json",
             "assets": [
                 {
                     "id": "combined-sr-cog",
@@ -233,6 +236,7 @@
         },
         {
             "collection_id": "ncp-biodiversity",
+            "collection_url": "https://s3-west.nrp-nautilus.io/public-ncp/stac-collection.json",
             "assets": [
                 {
                     "id": "ncp-biod-nathab-cog",
@@ -247,6 +251,7 @@
         },
         {
             "collection_id": "irrecoverable-carbon",
+            "collection_url": "https://s3-west.nrp-nautilus.io/public-carbon/stac-collection.json",
             "assets": [
                 {
                     "id": "v2-vulnerable-2024-cog",
@@ -270,7 +275,7 @@
         },
         {
             "collection_id": "ghs-pop-2020",
-            "collection_url": "https://s3-west.nrp-nautilus.io/public-high-seas/ghs-pop-2020/stac-collection.json",
+            "collection_url": "https://s3-west.nrp-nautilus.io/public-population/ghs-pop-2020/stac-collection.json",
             "assets": [
                 {
                     "id": "ghs-pop-2020-cog",
