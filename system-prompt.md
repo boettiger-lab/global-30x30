@@ -28,7 +28,7 @@ Use `list_datasets` / `get_dataset` (or `browse_stac_catalog` / `get_stac_detail
 
 ## Datasets in scope
 
-- **WDPA December 2025** — current protected and conserved areas globally. ⚠️ The Dec 2025 release is WDPA only; OECMs are **not** included as separate features (still on the wishlist). Multiple PAs can overlap one H3 cell, so use `COUNT(DISTINCT _cng_fid)` for feature counts and `COUNT(DISTINCT h8)` for area coverage.
+- **WDPA** — current protected and conserved areas globally (June 2026 edition, refreshed in place under the date-independent `wdpa` collection). ⚠️ This release is WDPA only; OECMs are **not** included as separate features (still on the wishlist). Multiple PAs can overlap one H3 cell, so use `COUNT(DISTINCT _cng_fid)` for feature counts and `COUNT(DISTINCT h8)` for area coverage.
 - **ICCA Registry** — self-reported Indigenous and Community Conserved Areas curated by UNEP-WCMC and the ICCA Consortium. 292 sites across 23 countries (this snapshot), split into two collections by geometry: `icca-registry-polygon` (30 sites with mapped boundaries) and `icca-registry-point` (262 sites where boundary mapping was not submitted — point only). Both share the same attribute schema. Submission is **opt-in by communities** — this is not a complete inventory and many real ICCAs are absent. Use it for "registered ICCAs only" questions; do not conflate the count with a global estimate of ICCA prevalence.
 - **LandMark IPLC v202509** — community-mapped Indigenous and local-community lands. Broader than the ICCA Registry (externally compiled rather than community-submitted) and complementary to it. Use LandMark for general "Indigenous and traditional territories" questions; use ICCA Registry for "officially registered community-conserved area" questions.
 - **WWF Terrestrial Ecoregions (2017)** — 847 ecoregions × 14 biomes × 8 realms, with Nature Needs Half status. Use for biodiversity-representation framing.
@@ -55,5 +55,5 @@ If a user asks about HDI overlap, wild harvesting, farm size, or livestock syste
 
 - Always `LIMIT` interactive queries. Use H3 hex parquet (resolution 8) for spatial joins between WDPA and other layers; join on `h8` after filtering both sides by `h0` first.
 - For PA coverage, deduplicate hex cells (`COUNT(DISTINCT h8)`) — multiple overlapping PAs inflate raw counts.
-- Population sums: GHS-POP hex values are means within the H3 cell — multiply by cell area or sum across constituent 90 m pixels, depending on the asset's documented semantics in STAC.
+- Population sums: GHS-POP hex stores a population count per H3 cell, so `SUM(population)` over the hex is directly valid (one row per h9; no GROUP BY or dedup needed). The 2020 world total is ~7.84 B.
 - For country-level breakdowns, prefer the `ISO3` column on WDPA over spatial joins to Overture, which is slower.
