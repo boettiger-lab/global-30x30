@@ -8,7 +8,7 @@ Datasets we currently lack are tracked in [boettiger-lab/data-workflows#161](htt
 
 | Paper artefact | What it shows | Reproducible? | Blocker |
 |---|---|:---:|---|
-| **Headline: 396 M in existing PAs, 1.15 B within 10 km** | Resident + buffer population for current PA/OECM network | 🟡 Partial | Have WDPA + GHS-POP, missing WD-OECM. Numbers will differ by year (we have 2020 not 2023). |
+| **Headline: 396 M in existing PAs, 1.15 B within 10 km** | Resident + buffer population for current PA/OECM network | 🟡 Partial | Have WDPA + WD-OECM + GHS-POP. Numbers will differ by year (we have GHS-POP 2020, not 2023). |
 | **Fig 1 — scenario maps** | Three Target-3 scenarios overlaid with current PAs | ❌ | Scenario rasters not hosted; the `prioritizr` runs that produced them require species AOH, KBA, NCP, HMI we don't have |
 | **Fig 2a — resident + neighbouring population by scenario** | Population in new PAs vs buffer | ❌ | Same scenario rasters |
 | **Fig 2b — HDI breakdown by scenario** | % of scenario population in Low / Medium / High / Very High HDI | ❌ | MOSAIKS gridded HDI not in catalog |
@@ -26,13 +26,13 @@ Datasets we currently lack are tracked in [boettiger-lab/data-workflows#161](htt
 
 These analyses are doable with the layers currently configured in `layers-input.json`:
 
-- **Global PA coverage**: `% of land area inside a designated PA` — `wdpa-december-2025`. Will land short of the paper's 17.2% figure because WD-OECM is missing.
-- **Population inside / near PAs**: `ghs-pop-2020` × `wdpa-december-2025`. Comparable to the paper's first row.
-- **Country-level PA coverage**: WDPA `ISO3` × Overture countries.
-- **Ecoregion representation**: `wwf-ecoregions-2017` × `wdpa-december-2025`. % of each ecoregion inside the PA network — speaks to the biodiversity-representation argument of the paper without reproducing the `prioritizr` optimization.
-- **Biodiversity value of PAs vs unprotected**: `iucn-richness-2025` (combined or per-taxon) × WDPA. Aggregated richness only — not the per-species coverage check the paper performs.
-- **Carbon stocks inside / outside PAs**: `irrecoverable-carbon` × WDPA. Closest analogue to one of the paper's 10 NCP layers (vulnerable ecosystem carbon).
-- **IPLC × PA overlap**: `landmark-iplc-poly` × `wdpa-december-2025`. Proxy for the ITT lens.
+- **Global conserved-area coverage**: `% of land area inside a designated PA or OECM` — union of `wdpa` and `wdoecm-may-2026` hex, deduplicated on `h8`. This is the paper's PA+OECM basis; WDPA alone lands short of the 17.2% figure.
+- **Population inside / near conserved areas**: `ghs-pop-2020` × (`wdpa` ∪ `wdoecm-may-2026`). Comparable to the paper's first row.
+- **Country-level coverage**: `ISO3` on WDPA/OECM × Overture countries.
+- **Ecoregion representation**: `wwf-ecoregions-2017` × (`wdpa` ∪ `wdoecm-may-2026`). % of each ecoregion inside the conserved-area network — speaks to the biodiversity-representation argument of the paper without reproducing the `prioritizr` optimization.
+- **Biodiversity value of PAs vs unprotected**: `iucn-ranges-2025` × `wdpa`. Per-species range hex enables on-demand richness (`COUNT(DISTINCT id_no)`) for any taxon and a true per-species coverage check (what fraction of each species' range is inside the network) — closer to the paper's analysis than the old aggregated richness rasters.
+- **Carbon stocks inside / outside PAs**: `irrecoverable-carbon` × `wdpa`. Closest analogue to one of the paper's 10 NCP layers (vulnerable ecosystem carbon).
+- **IPLC × PA overlap**: `landmark-iplc-poly` × `wdpa`. Proxy for the ITT lens.
 
 ## Things we should *not* fabricate
 
