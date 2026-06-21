@@ -8,7 +8,7 @@ Datasets we currently lack are tracked in [boettiger-lab/data-workflows#161](htt
 
 | Paper artefact | What it shows | Reproducible? | Blocker |
 |---|---|:---:|---|
-| **Headline: 396 M in existing PAs, 1.15 B within 10 km** | Resident + buffer population for current PA/OECM network | 🟡 Partial | Have WDPA + WD-OECM + GHS-POP. Numbers will differ by year (we have GHS-POP 2020, not 2023). |
+| **Headline: 396 M in existing PAs, 1.15 B within 10 km** | Resident + buffer population for current PA/OECM network | 🟢 Resident reproduced | **Reproduced 385.5 M in PA+OECM (4.9% of world pop)** via GHS-POP 2020 × (WDPA ∪ WD-OECM) hex at h8 — within ~3% of the paper's 396 M (snapshots are June 2026 / GHS-POP 2020). The 10 km buffer figure still needs a spatial buffer step. |
 | **Fig 1 — scenario maps** | Three Target-3 scenarios overlaid with current PAs | ❌ | Scenario rasters not hosted; the `prioritizr` runs that produced them require species AOH, KBA, NCP, HMI we don't have |
 | **Fig 2a — resident + neighbouring population by scenario** | Population in new PAs vs buffer | ❌ | Same scenario rasters |
 | **Fig 2b — HDI breakdown by scenario** | % of scenario population in Low / Medium / High / Very High HDI | ❌ | MOSAIKS gridded HDI not in catalog |
@@ -26,7 +26,7 @@ Datasets we currently lack are tracked in [boettiger-lab/data-workflows#161](htt
 
 These analyses are doable with the layers currently configured in `layers-input.json`:
 
-- **Global conserved-area coverage**: `% of land area inside a designated PA or OECM` — union of `wdpa` and `wdoecm-may-2026` hex, deduplicated on `h8`. This is the paper's PA+OECM basis; WDPA alone lands short of the 17.2% figure.
+- **Global conserved-area coverage**: `% of land area inside a designated PA or OECM` — union of `wdpa` and `wdoecm-may-2026` hex, deduplicated on `h8`, with `cgls-lc100-2019` as the land mask (exclude `lc_class` 0/80/200 = no-data/water/sea so ocean PAs don't inflate the denominator). **Reproduced 17.54%** — essentially matches the paper's 17.2% PA+OECM figure. WDPA alone lands lower.
 - **Population inside / near conserved areas**: `ghs-pop-2020` × (`wdpa` ∪ `wdoecm-may-2026`). Comparable to the paper's first row.
 - **Country-level coverage**: `ISO3` on WDPA/OECM × Overture countries.
 - **Ecoregion representation**: `wwf-ecoregions-2017` × (`wdpa` ∪ `wdoecm-may-2026`). % of each ecoregion inside the conserved-area network — speaks to the biodiversity-representation argument of the paper without reproducing the `prioritizr` optimization.

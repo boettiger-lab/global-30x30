@@ -293,6 +293,75 @@
             ]
         },
         {
+            "collection_id": "cgls-lc100-2019",
+            "collection_url": "https://s3-west.nrp-nautilus.io/public-land-cover/cgls-lc100-2019/stac-collection.json",
+            "assets": [
+                {
+                    "id": "cgls-lc100-2019-cog",
+                    "display_name": "Land Cover (Copernicus 100m, 2019)",
+                    "group": "Ecosystems & Freshwater",
+                    "visible": false,
+                    "legend_type": "categorical",
+                    "legend_label": "FAO LCCS class"
+                }
+            ]
+        },
+        {
+            "collection_id": "wetlands-ramsar",
+            "collection_url": "https://s3-west.nrp-nautilus.io/public-wetlands/ramsar/stac-collection.json",
+            "assets": [
+                {
+                    "id": "ramsar-pmtiles",
+                    "display_name": "Ramsar Wetlands (Intl. Importance)",
+                    "group": "Ecosystems & Freshwater",
+                    "visible": false,
+                    "default_style": {
+                        "fill-color": "#0277bd",
+                        "fill-opacity": 0.5
+                    },
+                    "outline_style": {
+                        "line-color": "#01466b",
+                        "line-width": 0.5,
+                        "line-opacity": 0.8
+                    },
+                    "tooltip_fields": [
+                        "Site name",
+                        "Country",
+                        "Wetland Type",
+                        "Area (ha)",
+                        "Designation date"
+                    ]
+                }
+            ]
+        },
+        {
+            "collection_id": "hydrobasins-v1c",
+            "collection_url": "https://s3-west.nrp-nautilus.io/public-hydrobasins/stac-collection.json",
+            "assets": [
+                {
+                    "id": "level-03-pmtiles",
+                    "display_name": "Watersheds (HydroBASINS L3)",
+                    "group": "Ecosystems & Freshwater",
+                    "visible": false,
+                    "default_style": {
+                        "fill-color": "#0288d1",
+                        "fill-opacity": 0
+                    },
+                    "outline_style": {
+                        "line-color": "#0288d1",
+                        "line-width": 0.6,
+                        "line-opacity": 0.6
+                    },
+                    "tooltip_fields": [
+                        "HYBAS_ID",
+                        "SUB_AREA",
+                        "UP_AREA",
+                        "ORDER"
+                    ]
+                }
+            ]
+        },
+        {
             "collection_id": "overture-divisions-countries-2026-02-18",
             "collection_url": "https://s3-west.nrp-nautilus.io/public-overturemaps/2026-02-18.0/countries/stac-collection.json",
             "group": { "name": "Administrative Boundaries", "collapsed": true },

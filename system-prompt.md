@@ -40,6 +40,9 @@ Use `list_datasets` / `get_dataset` (or `browse_stac_catalog` / `get_stac_detail
   - **iNaturalist ranges** (`inaturalist-ranges`) — modeled species ranges (H3 res 4 + polygons); community-science complement to IUCN.
 - **NCP — Biodiversity & Natural Habitat** (Chaplin-Kramer 2019 composite, 300 m) and **Irrecoverable / Vulnerable Carbon** (Noon 2022, 300 m).
 - **GHS-POP 2020** — 90 m gridded population count from the Global Human Settlement Layer. Use for "people living in / near" analyses.
+- **Copernicus Global Land Cover** (`cgls-lc100-2019`, 100 m, FAO LCCS classes) — global land cover. Categorical COG + H3 hex (res 9, `lc_class` is the per-cell mode; never sum/average). Also serves as a **land mask** (see SQL guidelines).
+- **Ramsar Wetlands** (`wetlands-ramsar`) — wetlands of international importance; a recognized conservation designation complementing WDPA/OECM. Overlapping boundaries can dupe hex rows — `SELECT DISTINCT h8` before joining.
+- **HydroBASINS v1c** (`hydrobasins-v1c`) — global watershed boundaries (levels 1–12; level 3 loaded as a map layer). Freshwater analysis unit.
 - **Overture countries / regions** — administrative context for country- or state-level breakdowns.
 
 ## What we do NOT have (don't fabricate)
@@ -60,3 +63,4 @@ If a user asks about HDI overlap, wild harvesting, farm size, or livestock syste
 - For PA coverage, deduplicate hex cells (`COUNT(DISTINCT h8)`) — multiple overlapping PAs inflate raw counts.
 - Population sums: GHS-POP hex stores a population count per H3 cell, so `SUM(population)` over the hex is directly valid (one row per h9; no GROUP BY or dedup needed). The 2020 world total is ~7.84 B.
 - For country-level breakdowns, prefer the `ISO3` column on WDPA over spatial joins to Overture, which is slower.
+- **Terrestrial coverage / land masking.** WDPA and WD-OECM include marine areas, so a raw h8 conserved-cell count covers ocean too. For *land* coverage, intersect with `cgls-lc100-2019` hex as a land mask: treat a cell as land when `lc_class NOT IN (0, 80, 200)` (no-data / permanent water / open sea). `% land conserved = conserved∩land cells ÷ land cells`. This reproduces the paper's ~17.2% PA+OECM figure (~17.5%).
