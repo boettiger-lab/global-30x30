@@ -247,7 +247,8 @@
                     "group": "Nature's Contributions to People",
                     "visible": false,
                     "colormap": "greens",
-                    "rescale": "0,1",
+                    "rescale": "0,20",
+                    "nodata": -9999,
                     "legend_label": "composite index"
                 }
             ]
