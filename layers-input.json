@@ -6,7 +6,7 @@
     "draw_enabled": true,
     "geocoder": {
         "provider": "nominatim",
-        "search_box": true
+        "search_box": false
     },
     "sidebar": {
         "enabled": true
