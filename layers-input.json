@@ -3,6 +3,11 @@
     "titiler_url": "https://titiler.nrp-nautilus.io",
     "mcp_url": "https://duckdb-mcp.nrp-nautilus.io/mcp",
     "auto_approve": true,
+    "draw_enabled": true,
+    "geocoder": {
+        "provider": "nominatim",
+        "search_box": true
+    },
     "sidebar": {
         "enabled": true
     },
@@ -48,7 +53,8 @@
     },
     "links": {
         "github": "https://github.com/boettiger-lab/global-30x30",
-        "docs": "https://boettiger-lab.github.io/geo-agent/"
+        "docs": "/docs.html",
+        "carbon": true
     },
     "collections": [
         {

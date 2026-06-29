@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>About — Global 30×30</title>
+<style>
+:root {
+    --ink: #14241a;
+    --ink-soft: #4a5b50;
+    --paper: #f6faf6;
+    --rule: #dde7df;
+    --accent: #2e7d32;
+    --accent-dark: #1b5e20;
+    --accent-soft: #e6f1e7;
+    --link: #2e7d32;
+    --max: 880px;
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+    margin: 0;
+    padding: 0;
+    background: var(--paper);
+    color: var(--ink);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+    font-size: 16px;
+    line-height: 1.6;
+}
+
+a { color: var(--link); text-decoration: none; }
+a:hover { text-decoration: underline; }
+
+header.hero {
+    background: linear-gradient(135deg, #0d3a1a 0%, var(--accent) 100%);
+    color: #fff;
+    padding: 3.5rem 1.5rem 2.5rem;
+    border-bottom: 1px solid var(--rule);
+}
+.hero-inner {
+    max-width: var(--max);
+    margin: 0 auto;
+}
+.hero h1 {
+    font-size: 2.1rem;
+    margin: 0 0 0.4rem 0;
+    font-weight: 600;
+    letter-spacing: -0.02em;
+}
+.hero .tag {
+    font-size: 1.05rem;
+    opacity: 0.92;
+    margin: 0 0 1.4rem 0;
+    max-width: 60ch;
+}
+.hero .cta {
+    display: inline-block;
+    background: rgba(255,255,255,0.15);
+    color: #fff;
+    padding: 0.55rem 1.1rem;
+    border-radius: 6px;
+    border: 1px solid rgba(255,255,255,0.35);
+    font-weight: 500;
+    transition: background 0.15s;
+}
+.hero .cta:hover { background: rgba(255,255,255,0.28); text-decoration: none; }
+.hero .badge {
+    display: inline-block;
+    margin-left: 0.6rem;
+    padding: 0.18rem 0.55rem;
+    border-radius: 999px;
+    background: rgba(255,255,255,0.18);
+    font-size: 0.8rem;
+    font-weight: 500;
+    letter-spacing: 0.02em;
+    vertical-align: middle;
+}
+
+main {
+    max-width: var(--max);
+    margin: 0 auto;
+    padding: 2.5rem 1.5rem 4rem;
+}
+
+section { margin-bottom: 2.8rem; }
+
+h2 {
+    font-size: 1.45rem;
+    color: var(--accent-dark);
+    border-bottom: 2px solid var(--accent-soft);
+    padding-bottom: 0.4rem;
+    margin: 0 0 1rem 0;
+    font-weight: 600;
+}
+h3 {
+    font-size: 1.12rem;
+    color: var(--ink);
+    margin: 1.4rem 0 0.5rem 0;
+    font-weight: 600;
+}
+p { margin: 0.5rem 0 0.9rem; }
+p.lede { font-size: 1.05rem; color: var(--ink-soft); }
+
+.layer-group {
+    background: #fff;
+    border: 1px solid var(--rule);
+    border-radius: 8px;
+    padding: 1rem 1.25rem;
+    margin: 0.9rem 0;
+}
+.layer-group h3 {
+    margin-top: 0;
+    color: var(--accent-dark);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+.layer-group h3::before {
+    content: "";
+    display: inline-block;
+    width: 4px;
+    height: 1.1em;
+    background: var(--accent);
+    border-radius: 2px;
+}
+.layer {
+    padding: 0.55rem 0;
+    border-top: 1px solid var(--rule);
+}
+.layer:first-of-type { border-top: 0; padding-top: 0; }
+.layer .name {
+    font-weight: 600;
+    color: var(--ink);
+}
+.layer .source {
+    color: var(--ink-soft);
+    font-size: 0.93rem;
+    margin: 0.1rem 0 0.15rem;
+}
+.layer .links {
+    font-size: 0.88rem;
+}
+.layer .links a { margin-right: 0.9rem; }
+.lic {
+    display: inline-block;
+    font-size: 0.78rem;
+    font-weight: 500;
+    color: var(--accent-dark);
+    background: var(--accent-soft);
+    border-radius: 4px;
+    padding: 0.05rem 0.4rem;
+    margin-top: 0.2rem;
+}
+
+.callout {
+    background: var(--accent-soft);
+    border-left: 3px solid var(--accent);
+    padding: 0.9rem 1.1rem;
+    border-radius: 0 6px 6px 0;
+    margin: 1rem 0;
+    font-size: 0.97rem;
+}
+.callout.green {
+    background: #e8f3ea;
+    border-left-color: #2e7d32;
+}
+
+.foot {
+    text-align: center;
+    color: var(--ink-soft);
+    font-size: 0.88rem;
+    margin-top: 3rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid var(--rule);
+}
+.foot .partners {
+    display: flex;
+    justify-content: center;
+    gap: 1.8rem;
+    flex-wrap: wrap;
+    margin: 0.6rem 0 1rem;
+    font-weight: 500;
+    color: var(--ink);
+}
+
+@media (max-width: 600px) {
+    .hero h1 { font-size: 1.6rem; }
+    main { padding: 1.5rem 1rem 3rem; }
+    h2 { font-size: 1.2rem; }
+}
+</style>
+</head>
+<body>
+
+<header class="hero">
+    <div class="hero-inner">
+        <h1>Global 30×30
+            <span class="badge">work in progress</span>
+        </h1>
+        <p class="tag">An interactive map and AI assistant for exploring the spatial and social context of the Kunming-Montreal Global Biodiversity Framework's "30×30" target — the commitment that at least 30% of the planet's land and waters be effectively conserved by 2030.</p>
+        <a href="/" class="cta">← Open the App</a>
+    </div>
+</header>
+
+<main>
+
+<section>
+    <h2>About this project</h2>
+    <p class="lede">A project of the <a href="https://dse.berkeley.edu" target="_blank" rel="noopener">Eric and Wendy Schmidt Center for Data Science &amp; Environment (DSE)</a> at UC Berkeley.</p>
+    <p>In 2022, nearly 200 nations adopted the <a href="https://www.cbd.int/gbf" target="_blank" rel="noopener">Kunming-Montreal Global Biodiversity Framework</a>. Its <strong>Target 3 — the "30×30" goal</strong> — commits the world to effectively conserving at least 30% of terrestrial, inland-water, marine and coastal areas by 2030. Meeting it depends on knowing what is already protected, where biodiversity and irreplaceable carbon are concentrated, and how the network overlaps with the Indigenous peoples and local communities who steward much of the planet's remaining biodiversity. This app brings the global protected- and conserved-area inventory together with the biodiversity, carbon, land-cover, freshwater, and population datasets that inform those questions, and pairs them with an AI assistant that can both drive the map and answer quantitative questions about the data.</p>
+    <p>The app is inspired by the analysis in Fajardo et al. 2026, <a href="https://doi.org/10.1038/s41467-026-71860-8" target="_blank" rel="noopener"><em>Social implications of the 30×30 global conservation target</em></a> (Nature Communications). Not every layer from that study is hosted here — see the repository's <a href="https://github.com/boettiger-lab/global-30x30/blob/main/coverage.md" target="_blank" rel="noopener">coverage notes</a> for what can and cannot currently be reproduced.</p>
+    <p>This is a <strong>work in progress</strong> — layers, models, and capabilities are being added and refined.</p>
+</section>
+
+<section>
+    <h2>How it works</h2>
+    <p>This app is powered by <a href="https://boettiger-lab.github.io/geo-agent/" target="_blank" rel="noopener"><strong>GLEN</strong></a>, DSE's open-source framework for AI-assisted geospatial exploration. Open datasets stream straight to your browser from cloud-native formats — no tile server in between — and an AI assistant answers questions by writing live queries against the same data. Full technical details are in the <a href="https://boettiger-lab.github.io/geo-agent/" target="_blank" rel="noopener">GLEN documentation</a>.</p>
+
+    <div class="callout green">
+        <strong>🌱 Low-carbon, open models.</strong> Be patient. While much faster than most humans, GLEN makes use of more environmentally-friendly AI models. (Check out the <a href="https://carbon-api.nrp-nautilus.io/" target="_blank" rel="noopener">carbon dashboard 🌱</a> to see the CO₂/energy use of this deployment.)
+    </div>
+</section>
+
+<section>
+    <h2>Exploring the map</h2>
+    <p>The map is built on <a href="https://maplibre.org" target="_blank" rel="noopener">MapLibre GL</a> — the open-source engine behind the familiar Mapbox-style interactive maps. <strong>Scroll or pinch to zoom</strong>, <strong>drag to pan</strong>, and <strong>hold Ctrl and drag</strong> to tilt and rotate the view. Use the <strong>search box</strong> in the top-left corner to jump the map to any country, region, or place by name.</p>
+    <p>The <strong>Overlays</strong> panel lists every data layer, organized into groups — protected &amp; conserved areas, Indigenous &amp; community lands, biodiversity, carbon, freshwater, and more. <strong>Toggle a layer on or off</strong> with its checkbox, and <strong>hover any feature</strong> for a tooltip of its live attributes — names, designations, IUCN categories, areas — straight from the source data. When layers overlap, use the <strong>send-to-back button (↩)</strong> in the Overlays header to drop the topmost layer beneath the others.</p>
+</section>
+
+<section>
+    <h2>Asking the assistant</h2>
+    <p>The Data Assistant understands plain English and does two kinds of things: it can <strong>drive the map</strong> for you, and it can <strong>answer analytical questions</strong> about the data. Just type what you want — if it can't do something, it will say so and usually suggest the closest thing it can.</p>
+
+    <p><strong>Map operations</strong> happen right away on the layers already loaded — no hunting through menus:</p>
+    <ul>
+        <li><strong>Filter a layer:</strong> <em>"Show only IUCN category I and II protected areas."</em></li>
+        <li><strong>Recolor or restyle a layer:</strong> <em>"Color protected areas by designation type"</em>, <em>"Make the ecoregion layer 50% transparent."</em></li>
+        <li><strong>Fly somewhere:</strong> <em>"Fly to the Amazon"</em>, <em>"Zoom to the Congo Basin."</em></li>
+        <li><strong>Show or hide layers:</strong> <em>"Turn on irrecoverable carbon"</em>, <em>"Show Indigenous and community lands."</em></li>
+    </ul>
+
+    <p><strong>Analytical questions</strong> are answered by writing live spatial queries over the underlying data, returning a number or a downloadable table:</p>
+    <ul>
+        <li><em>"What percentage of global land is currently inside a protected area or OECM?"</em></li>
+        <li><em>"How many people live inside existing protected areas?"</em></li>
+        <li><em>"Which ecoregions are least represented in the current protected-area network?"</em></li>
+    </ul>
+
+    <div class="callout">
+        <strong>✏️ Draw an area to ask about it.</strong> Use the <strong>draw tool</strong> on the map to sketch a polygon — a basin, a country, a proposed corridor, anywhere on Earth — then ask the assistant about it: <em>"How much of the area I drew is already conserved?"</em>, <em>"What's the average irrecoverable carbon here?"</em>, <em>"How many people live inside this polygon?"</em> Your drawn shape becomes a live spatial filter for any query.
+    </div>
+</section>
+
+<section>
+    <h2>Data layers &amp; sources</h2>
+    <p>Every layer draws from a public, primary source. Click "STAC" beside any entry to see the full machine-readable metadata — schemas, column descriptions, license, lineage, and download URLs.</p>
+
+    <div class="layer-group">
+        <h3>Protected &amp; Conserved Areas</h3>
+        <div class="layer">
+            <div class="name">Protected Areas (WDPA)</div>
+            <div class="source">The World Database on Protected Areas — the global inventory of legally designated and proposed protected areas, attributed with designation, IUCN management category, status, country, and area. The primary reference for tracking 30×30 progress.</div>
+            <div class="links"><a href="https://radiantearth.github.io/stac-browser/#/external/s3-west.nrp-nautilus.io/public-wdpa/wdpa/stac-collection.json" target="_blank" rel="noopener">STAC</a><a href="https://www.protectedplanet.net/" target="_blank" rel="noopener">Source: Protected Planet</a></div>
+            <span class="lic">UNEP-WCMC &amp; IUCN — WDPA</span>
+        </div>
+        <div class="layer">
+            <div class="name">OECMs (WD-OECM)</div>
+            <div class="source">The World Database on Other Effective Area-Based Conservation Measures — the sister database to WDPA. Target 3 is met by the union of WDPA and WD-OECM, so both are needed for any "currently conserved" figure.</div>
+            <div class="links"><a href="https://radiantearth.github.io/stac-browser/#/external/s3-west.nrp-nautilus.io/public-wdpa/wdoecm-may-2026/stac-collection.json" target="_blank" rel="noopener">STAC</a><a href="https://www.protectedplanet.net/en/thematic-areas/oecms" target="_blank" rel="noopener">Source: Protected Planet</a></div>
+            <span class="lic">UNEP-WCMC &amp; IUCN — WD-OECM</span>
+        </div>
+    </div>
+
+    <div class="layer-group">
+        <h3>Indigenous &amp; Community Lands</h3>
+        <div class="layer">
+            <div class="name">Indigenous &amp; Community Lands (LandMark)</div>
+            <div class="source">Community-mapped Indigenous and local-community lands compiled by the LandMark global platform — context for the lands and territories that overlap with, and steward, much of the world's remaining biodiversity.</div>
+            <div class="links"><a href="https://radiantearth.github.io/stac-browser/#/external/s3-west.nrp-nautilus.io/public-indigenous/landmark/iplc-poly-stac.json" target="_blank" rel="noopener">STAC</a><a href="https://www.landmarkmap.org/" target="_blank" rel="noopener">Source: LandMark</a></div>
+            <span class="lic">LandMark — Global Platform of Indigenous and Community Lands</span>
+        </div>
+        <div class="layer">
+            <div class="name">ICCA Registry (Polygon &amp; Point Sites)</div>
+            <div class="source">Self-reported Indigenous and Community Conserved Areas curated by UNEP-WCMC and the ICCA Consortium — split into mapped-boundary (polygon) and location-only (point) sites. Submission is opt-in by communities, so this is an illustrative registry, not a complete inventory.</div>
+            <div class="links"><a href="https://radiantearth.github.io/stac-browser/#/external/s3-west.nrp-nautilus.io/public-icca/icca-registry/icca-polygon/stac-collection.json" target="_blank" rel="noopener">STAC (polygon)</a><a href="https://radiantearth.github.io/stac-browser/#/external/s3-west.nrp-nautilus.io/public-icca/icca-registry/icca-point/stac-collection.json" target="_blank" rel="noopener">STAC (point)</a><a href="https://www.iccaregistry.org/" target="_blank" rel="noopener">Source: ICCA Registry</a></div>
+            <span class="lic">UNEP-WCMC &amp; the ICCA Consortium</span>
+        </div>
+    </div>
+
+    <div class="layer-group">
+        <h3>Biodiversity Context</h3>
+        <div class="layer">
+            <div class="name">Terrestrial Ecoregions (WWF)</div>
+            <div class="source">WWF's 846 terrestrial ecoregions across 14 biomes and 8 realms, attributed with Nature Needs Half protection status — the standard framework for assessing how representative the protected-area network is across the planet's habitats.</div>
+            <div class="links"><a href="https://radiantearth.github.io/stac-browser/#/external/s3-west.nrp-nautilus.io/public-ecoregion/stac-collection.json" target="_blank" rel="noopener">STAC</a><a href="https://www.worldwildlife.org/publications/terrestrial-ecoregions-of-the-world" target="_blank" rel="noopener">Source: WWF</a></div>
+            <span class="lic">Olson et al. 2001 / Dinerstein et al. 2017</span>
+        </div>
+        <div class="layer">
+            <div class="name">Species ranges, occurrences &amp; status <span style="font-weight:400;color:var(--ink-soft);">(assistant only)</span></div>
+            <div class="source">IUCN Red List range maps and taxonomy (2025), GBIF occurrences, and iNaturalist modeled ranges are queryable through the assistant rather than pre-loaded as map toggles. Ask for richness, threatened-species counts, or representation and the assistant computes them on demand from the H3-indexed source data.</div>
+            <div class="links"><a href="https://www.iucnredlist.org/" target="_blank" rel="noopener">Source: IUCN Red List</a><a href="https://www.gbif.org/" target="_blank" rel="noopener">Source: GBIF</a><a href="https://www.inaturalist.org/" target="_blank" rel="noopener">Source: iNaturalist</a></div>
+            <span class="lic">IUCN 2025 · GBIF · iNaturalist</span>
+        </div>
+    </div>
+
+    <div class="layer-group">
+        <h3>Nature's Contributions to People</h3>
+        <div class="layer">
+            <div class="name">Biodiversity &amp; Natural Habitat (Chaplin-Kramer 2019)</div>
+            <div class="source">A 300 m composite index of biodiversity and remaining natural habitat from the global modeling of nature's contributions to people — used to frame the biodiversity value of conserved vs. unconserved land.</div>
+            <div class="links"><a href="https://radiantearth.github.io/stac-browser/#/external/s3-west.nrp-nautilus.io/public-ncp/stac-collection.json" target="_blank" rel="noopener">STAC</a><a href="https://www.science.org/doi/10.1126/science.aaw3372" target="_blank" rel="noopener">Source: Chaplin-Kramer et al. 2019</a></div>
+            <span class="lic">Chaplin-Kramer et al. 2019, Science</span>
+        </div>
+        <div class="layer">
+            <div class="name">Irrecoverable &amp; Vulnerable Carbon (2024)</div>
+            <div class="source">Manageable ecosystem carbon that, if lost, could not be recovered by 2050 (irrecoverable) or is at risk from land-use conversion (vulnerable), at 300 m — a key argument for protecting specific places, not just total area.</div>
+            <div class="links"><a href="https://radiantearth.github.io/stac-browser/#/external/s3-west.nrp-nautilus.io/public-carbon/stac-collection.json" target="_blank" rel="noopener">STAC</a><a href="https://irrecoverable.resilienceatlas.org/" target="_blank" rel="noopener">Source: Irrecoverable Carbon</a></div>
+            <span class="lic">Noon et al. 2022 / Conservation International</span>
+        </div>
+    </div>
+
+    <div class="layer-group">
+        <h3>Population</h3>
+        <div class="layer">
+            <div class="name">Population Density (GHS-POP 2020)</div>
+            <div class="source">The Global Human Settlement Layer's 90 m gridded population count for 2020 — the basis for "how many people live inside or near protected areas" analyses.</div>
+            <div class="links"><a href="https://radiantearth.github.io/stac-browser/#/external/s3-west.nrp-nautilus.io/public-population/ghs-pop-2020/stac-collection.json" target="_blank" rel="noopener">STAC</a><a href="https://ghsl.jrc.ec.europa.eu/" target="_blank" rel="noopener">Source: GHSL</a></div>
+            <span class="lic">European Commission JRC — GHS-POP</span>
+        </div>
+    </div>
+
+    <div class="layer-group">
+        <h3>Ecosystems &amp; Freshwater</h3>
+        <div class="layer">
+            <div class="name">Land Cover (Copernicus 100 m, 2019)</div>
+            <div class="source">Copernicus Global Land Cover at 100 m, FAO LCCS classes — global land-cover context that also serves as a land mask for distinguishing terrestrial from marine coverage.</div>
+            <div class="links"><a href="https://radiantearth.github.io/stac-browser/#/external/s3-west.nrp-nautilus.io/public-land-cover/cgls-lc100-2019/stac-collection.json" target="_blank" rel="noopener">STAC</a><a href="https://land.copernicus.eu/en/products/global-dynamic-land-cover" target="_blank" rel="noopener">Source: Copernicus</a></div>
+            <span class="lic">Copernicus Global Land Service — CGLS-LC100</span>
+        </div>
+        <div class="layer">
+            <div class="name">Ramsar Wetlands (Intl. Importance)</div>
+            <div class="source">Wetlands of international importance designated under the Ramsar Convention — a recognized conservation designation complementing WDPA and OECMs.</div>
+            <div class="links"><a href="https://radiantearth.github.io/stac-browser/#/external/s3-west.nrp-nautilus.io/public-wetlands/ramsar/stac-collection.json" target="_blank" rel="noopener">STAC</a><a href="https://www.ramsar.org/" target="_blank" rel="noopener">Source: Ramsar</a></div>
+            <span class="lic">Ramsar Convention / Ramsar Sites Information Service</span>
+        </div>
+        <div class="layer">
+            <div class="name">Watersheds (HydroBASINS L3)</div>
+            <div class="source">HydroSHEDS HydroBASINS global watershed boundaries (level 3 shown as a layer; finer levels available to the assistant) — the freshwater analysis unit for basin-scale summaries.</div>
+            <div class="links"><a href="https://radiantearth.github.io/stac-browser/#/external/s3-west.nrp-nautilus.io/public-hydrobasins/stac-collection.json" target="_blank" rel="noopener">STAC</a><a href="https://www.hydrosheds.org/products/hydrobasins" target="_blank" rel="noopener">Source: HydroSHEDS</a></div>
+            <span class="lic">Lehner &amp; Grill 2013 — HydroBASINS v1c</span>
+        </div>
+    </div>
+
+    <div class="layer-group">
+        <h3>Administrative Boundaries</h3>
+        <div class="layer">
+            <div class="name">Countries &amp; Regions / States</div>
+            <div class="source">Overture Maps administrative divisions — country and region/state boundaries for jurisdiction-level breakdowns and reference framing.</div>
+            <div class="links"><a href="https://radiantearth.github.io/stac-browser/#/external/s3-west.nrp-nautilus.io/public-overturemaps/2026-02-18.0/countries/stac-collection.json" target="_blank" rel="noopener">STAC (countries)</a><a href="https://radiantearth.github.io/stac-browser/#/external/s3-west.nrp-nautilus.io/public-overturemaps/2026-02-18.0/regions/stac-collection.json" target="_blank" rel="noopener">STAC (regions)</a><a href="https://overturemaps.org/" target="_blank" rel="noopener">Source: Overture Maps</a></div>
+            <span class="lic">Overture Maps Foundation</span>
+        </div>
+    </div>
+
+    <p style="margin-top: 1.6rem;">Browse the full STAC catalog at <a href="https://radiantearth.github.io/stac-browser/#/external/s3-west.nrp-nautilus.io/public-data/stac/catalog.json" target="_blank" rel="noopener">radiantearth.github.io / stac-browser</a> to explore additional datasets not yet enabled in the app.</p>
+</section>
+
+<div class="foot">
+    <div class="partners">
+        <span><a href="https://dse.berkeley.edu" target="_blank" rel="noopener">Schmidt Center for Data Science &amp; Environment</a></span>
+    </div>
+    <div>Built by DSE at UC Berkeley with <a href="https://github.com/boettiger-lab/geo-agent" target="_blank" rel="noopener">GLEN</a> · <a href="https://github.com/boettiger-lab/global-30x30" target="_blank" rel="noopener">Source on GitHub</a></div>
+    <div style="margin-top:0.4rem;">A work in progress — feedback welcome via <a href="https://github.com/boettiger-lab/global-30x30/issues" target="_blank" rel="noopener">GitHub issues</a>.</div>
+</div>
+
+</main>
+
+</body>
+</html>
