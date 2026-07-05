@@ -13,7 +13,7 @@ Typical user questions concern:
 
 ## Discovering data
 
-Use `list_datasets` / `get_dataset` (or `browse_stac_catalog` / `get_stac_details`) before writing SQL. **Never guess S3 paths** — read them off the STAC. Skip exploratory `SELECT *` — the catalog already documents the columns.
+Check the dataset metadata (and the STAC catalog for anything outside this app's datasets) before writing SQL. **Never guess S3 paths** — read them off the STAC. Skip exploratory `SELECT *` — the catalog already documents the columns.
 
 ## When to use which tool
 
