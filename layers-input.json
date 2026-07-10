@@ -24,8 +24,8 @@
         "default_endpoint": "https://openrouter.ai/api/v1",
         "models": [
             {
-                "value": "anthropic/claude-sonnet-4",
-                "label": "Claude Sonnet"
+                "value": "anthropic/claude-sonnet-5",
+                "label": "Claude Sonnet 5"
             },
             {
                 "value": "qwen/qwen3-235b-a22b",
