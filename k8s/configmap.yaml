@@ -13,13 +13,19 @@ data:
   config.template.json: |
     {
         "mcp_server_url": "${MCP_SERVER_URL}",
-        "llm_model": "qwen",
+        "llm_model": "z-ai/glm-5.2",
         "transcription_model": {
             "value": "gemma-4-e4b",
             "endpoint": "/api/llm",
             "api_key": "unused"
         },
         "llm_models": [
+            {
+                "value": "z-ai/glm-5.2",
+                "label": "GLM-5.2 (OpenRouter)",
+                "endpoint": "/api/llm",
+                "api_key": "unused"
+            },
             {
                 "value": "gemma",
                 "label": "NRP Gemma",
