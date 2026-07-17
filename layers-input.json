@@ -89,6 +89,13 @@
                         "STATUS",
                         "ISO3",
                         "GIS_AREA"
+                    ],
+                    "legend_type": "categorical",
+                    "legend_classes": [
+                        { "label": "Strict / Wilderness / National Park (IUCN Ia–II)", "color": "#1b5e20" },
+                        { "label": "Monument / Habitat mgmt (III–IV)", "color": "#43a047" },
+                        { "label": "Protected landscape / Sustainable use (V–VI)", "color": "#a5d6a7" },
+                        { "label": "Not reported / other", "color": "#bdbdbd" }
                     ]
                 }
             ]
@@ -118,6 +125,10 @@
                         "STATUS",
                         "ISO3",
                         "GIS_AREA"
+                    ],
+                    "legend_type": "categorical",
+                    "legend_classes": [
+                        { "label": "OECM", "color": "#00838f" }
                     ]
                 }
             ]
@@ -239,6 +250,14 @@
                         "BIOME_NAME",
                         "REALM",
                         "NNH_NAME"
+                    ],
+                    "legend_type": "categorical",
+                    "legend_classes": [
+                        { "label": "Half Protected", "color": "#2e7d32" },
+                        { "label": "Nature Could Reach Half Protected", "color": "#9ccc65" },
+                        { "label": "Nature Could Recover", "color": "#fdd835" },
+                        { "label": "Nature Imperiled", "color": "#e53935" },
+                        { "label": "Other / unassessed", "color": "#bdbdbd" }
                     ]
                 }
             ]
