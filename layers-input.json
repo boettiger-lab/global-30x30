@@ -303,6 +303,198 @@
             ]
         },
         {
+            "collection_id": "globio-msa-2015-overall",
+            "collection_url": "https://s3-west.nrp-nautilus.io/public-globio/globio-msa-2015-overall/stac-collection.json",
+            "assets": [
+                {
+                    "id": "globio-msa-2015-overall-cog",
+                    "display_name": "Overall MSA — 2015 baseline",
+                    "group": "Biodiversity Intactness (GLOBIO MSA)",
+                    "visible": false,
+                    "colormap": "rdylgn",
+                    "rescale": "0,1",
+                    "nodata": -999,
+                    "legend_label": "MSA (0 = degraded, 1 = intact)"
+                }
+            ]
+        },
+        {
+            "collection_id": "globio-msa-ssp1rcp26-2050-overall",
+            "collection_url": "https://s3-west.nrp-nautilus.io/public-globio/globio-msa-ssp1rcp26-2050-overall/stac-collection.json",
+            "assets": [
+                {
+                    "id": "globio-msa-ssp1rcp26-2050-overall-cog",
+                    "display_name": "Overall MSA — 2050 Sustainability (SSP1×RCP2.6)",
+                    "group": "Biodiversity Intactness (GLOBIO MSA)",
+                    "visible": false,
+                    "colormap": "rdylgn",
+                    "rescale": "0,1",
+                    "nodata": -999,
+                    "legend_label": "MSA (0 = degraded, 1 = intact)"
+                }
+            ]
+        },
+        {
+            "collection_id": "globio-msa-ssp3rcp60-2050-overall",
+            "collection_url": "https://s3-west.nrp-nautilus.io/public-globio/globio-msa-ssp3rcp60-2050-overall/stac-collection.json",
+            "assets": [
+                {
+                    "id": "globio-msa-ssp3rcp60-2050-overall-cog",
+                    "display_name": "Overall MSA — 2050 Regional Rivalry (SSP3×RCP6.0)",
+                    "group": "Biodiversity Intactness (GLOBIO MSA)",
+                    "visible": false,
+                    "colormap": "rdylgn",
+                    "rescale": "0,1",
+                    "nodata": -999,
+                    "legend_label": "MSA (0 = degraded, 1 = intact)"
+                }
+            ]
+        },
+        {
+            "collection_id": "globio-msa-ssp5rcp85-2050-overall",
+            "collection_url": "https://s3-west.nrp-nautilus.io/public-globio/globio-msa-ssp5rcp85-2050-overall/stac-collection.json",
+            "assets": [
+                {
+                    "id": "globio-msa-ssp5rcp85-2050-overall-cog",
+                    "display_name": "Overall MSA — 2050 Fossil-fuelled (SSP5×RCP8.5)",
+                    "group": "Biodiversity Intactness (GLOBIO MSA)",
+                    "visible": false,
+                    "colormap": "rdylgn",
+                    "rescale": "0,1",
+                    "nodata": -999,
+                    "legend_label": "MSA (0 = degraded, 1 = intact)"
+                }
+            ]
+        },
+        {
+            "collection_id": "globio-msa-2015-plants",
+            "collection_url": "https://s3-west.nrp-nautilus.io/public-globio/globio-msa-2015-plants/stac-collection.json",
+            "assets": [
+                {
+                    "id": "globio-msa-2015-plants-cog",
+                    "display_name": "Plants MSA — 2015 baseline",
+                    "group": "Biodiversity Intactness (GLOBIO MSA)",
+                    "visible": false,
+                    "colormap": "rdylgn",
+                    "rescale": "0,1",
+                    "nodata": -999,
+                    "legend_label": "MSA (0 = degraded, 1 = intact)"
+                }
+            ]
+        },
+        {
+            "collection_id": "globio-msa-ssp1rcp26-2050-plants",
+            "collection_url": "https://s3-west.nrp-nautilus.io/public-globio/globio-msa-ssp1rcp26-2050-plants/stac-collection.json",
+            "assets": [
+                {
+                    "id": "globio-msa-ssp1rcp26-2050-plants-cog",
+                    "display_name": "Plants MSA — 2050 Sustainability (SSP1×RCP2.6)",
+                    "group": "Biodiversity Intactness (GLOBIO MSA)",
+                    "visible": false,
+                    "colormap": "rdylgn",
+                    "rescale": "0,1",
+                    "nodata": -999,
+                    "legend_label": "MSA (0 = degraded, 1 = intact)"
+                }
+            ]
+        },
+        {
+            "collection_id": "globio-msa-ssp3rcp60-2050-plants",
+            "collection_url": "https://s3-west.nrp-nautilus.io/public-globio/globio-msa-ssp3rcp60-2050-plants/stac-collection.json",
+            "assets": [
+                {
+                    "id": "globio-msa-ssp3rcp60-2050-plants-cog",
+                    "display_name": "Plants MSA — 2050 Regional Rivalry (SSP3×RCP6.0)",
+                    "group": "Biodiversity Intactness (GLOBIO MSA)",
+                    "visible": false,
+                    "colormap": "rdylgn",
+                    "rescale": "0,1",
+                    "nodata": -999,
+                    "legend_label": "MSA (0 = degraded, 1 = intact)"
+                }
+            ]
+        },
+        {
+            "collection_id": "globio-msa-ssp5rcp85-2050-plants",
+            "collection_url": "https://s3-west.nrp-nautilus.io/public-globio/globio-msa-ssp5rcp85-2050-plants/stac-collection.json",
+            "assets": [
+                {
+                    "id": "globio-msa-ssp5rcp85-2050-plants-cog",
+                    "display_name": "Plants MSA — 2050 Fossil-fuelled (SSP5×RCP8.5)",
+                    "group": "Biodiversity Intactness (GLOBIO MSA)",
+                    "visible": false,
+                    "colormap": "rdylgn",
+                    "rescale": "0,1",
+                    "nodata": -999,
+                    "legend_label": "MSA (0 = degraded, 1 = intact)"
+                }
+            ]
+        },
+        {
+            "collection_id": "globio-msa-2015-wbvert",
+            "collection_url": "https://s3-west.nrp-nautilus.io/public-globio/globio-msa-2015-wbvert/stac-collection.json",
+            "assets": [
+                {
+                    "id": "globio-msa-2015-wbvert-cog",
+                    "display_name": "Warm-blooded Vertebrates MSA — 2015 baseline",
+                    "group": "Biodiversity Intactness (GLOBIO MSA)",
+                    "visible": false,
+                    "colormap": "rdylgn",
+                    "rescale": "0,1",
+                    "nodata": -999,
+                    "legend_label": "MSA (0 = degraded, 1 = intact)"
+                }
+            ]
+        },
+        {
+            "collection_id": "globio-msa-ssp1rcp26-2050-wbvert",
+            "collection_url": "https://s3-west.nrp-nautilus.io/public-globio/globio-msa-ssp1rcp26-2050-wbvert/stac-collection.json",
+            "assets": [
+                {
+                    "id": "globio-msa-ssp1rcp26-2050-wbvert-cog",
+                    "display_name": "Warm-blooded Vertebrates MSA — 2050 Sustainability (SSP1×RCP2.6)",
+                    "group": "Biodiversity Intactness (GLOBIO MSA)",
+                    "visible": false,
+                    "colormap": "rdylgn",
+                    "rescale": "0,1",
+                    "nodata": -999,
+                    "legend_label": "MSA (0 = degraded, 1 = intact)"
+                }
+            ]
+        },
+        {
+            "collection_id": "globio-msa-ssp3rcp60-2050-wbvert",
+            "collection_url": "https://s3-west.nrp-nautilus.io/public-globio/globio-msa-ssp3rcp60-2050-wbvert/stac-collection.json",
+            "assets": [
+                {
+                    "id": "globio-msa-ssp3rcp60-2050-wbvert-cog",
+                    "display_name": "Warm-blooded Vertebrates MSA — 2050 Regional Rivalry (SSP3×RCP6.0)",
+                    "group": "Biodiversity Intactness (GLOBIO MSA)",
+                    "visible": false,
+                    "colormap": "rdylgn",
+                    "rescale": "0,1",
+                    "nodata": -999,
+                    "legend_label": "MSA (0 = degraded, 1 = intact)"
+                }
+            ]
+        },
+        {
+            "collection_id": "globio-msa-ssp5rcp85-2050-wbvert",
+            "collection_url": "https://s3-west.nrp-nautilus.io/public-globio/globio-msa-ssp5rcp85-2050-wbvert/stac-collection.json",
+            "assets": [
+                {
+                    "id": "globio-msa-ssp5rcp85-2050-wbvert-cog",
+                    "display_name": "Warm-blooded Vertebrates MSA — 2050 Fossil-fuelled (SSP5×RCP8.5)",
+                    "group": "Biodiversity Intactness (GLOBIO MSA)",
+                    "visible": false,
+                    "colormap": "rdylgn",
+                    "rescale": "0,1",
+                    "nodata": -999,
+                    "legend_label": "MSA (0 = degraded, 1 = intact)"
+                }
+            ]
+        },
+        {
             "collection_id": "ghs-pop-2020",
             "collection_url": "https://s3-west.nrp-nautilus.io/public-population/ghs-pop-2020/stac-collection.json",
             "assets": [
@@ -365,8 +557,8 @@
             "collection_url": "https://s3-west.nrp-nautilus.io/public-hydrobasins/stac-collection.json",
             "assets": [
                 {
-                    "id": "level-03-pmtiles",
-                    "display_name": "Watersheds (HydroBASINS L3)",
+                    "id": "unified-pmtiles",
+                    "display_name": "Watersheds (HydroBASINS)",
                     "group": "Ecosystems & Freshwater",
                     "visible": false,
                     "default_style": {
@@ -380,10 +572,17 @@
                     },
                     "tooltip_fields": [
                         "HYBAS_ID",
-                        "SUB_AREA",
+                        "PFAF_ID",
                         "UP_AREA",
-                        "ORDER"
-                    ]
+                        "SUB_AREA"
+                    ],
+                    "versions": [
+                        { "label": "L3 – Major Basins", "asset_id": "level-03-pmtiles" },
+                        { "label": "L4", "asset_id": "level-04-pmtiles" },
+                        { "label": "L5", "asset_id": "level-05-pmtiles" },
+                        { "label": "L6 – Sub-catchments", "asset_id": "unified-pmtiles" }
+                    ],
+                    "default_version": "L6 – Sub-catchments"
                 }
             ]
         },
