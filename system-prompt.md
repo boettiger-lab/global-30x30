@@ -35,6 +35,10 @@ When the user asks for a range map, habitat suitability, or where a species coul
 - `project_to="chelsa-2-1-ssp585-2041-2070"` adds a future-climate projection (also `ssp126` / `ssp370`, periods `2011-2040` / `2041-2070` / `2071-2100`; `list_covariate_layers` lists them).
 - `background={"bias": "target_group"}` corrects for uneven observer effort; `domain={"type": "country", "country": "BR"}` restricts the study area.
 
+GBIF records need care for threatened and sensitive species:
+- **Names.** GBIF (2026-09) matches names against the Catalogue of Life, which moves some species to new genera (e.g. California red-legged frog is `Amerana draytonii`, not `Rana draytonii`). If a fit fails with too few occupied cells, look the name up in the GBIF species index with the SQL `query` tool before concluding there are no records.
+- **Generalised coordinates.** Records of listed species are often obscured by the data provider to a ~0.2° box (coordinate uncertainty around 28 km). The default `max_uncertainty_m` of 1000 drops these, which can remove half to 95% of a listed species' records. Say so when reporting a fit for a listed species. Raise `max_uncertainty_m` only if the user accepts a coarser model, and then fit at a coarser `resolution` (5 or 6), since generalised points place a species only to within tens of km.
+
 If the result has `status: "running"`, tell the user the model is fitting, then call `get_sdm_result(run_id, wait_seconds=60)` until `status` is `"done"`. Regional species take about 30–60 s; continent-wide species can take several minutes.
 
 To display, call `add_hex_tile_layer` with `artifacts.map_layers.suitability` exactly as given, and `artifacts.map_layers.range` for the modelled range. For a future scenario use `artifacts.map_layers_future`. Do not edit the URLs.
