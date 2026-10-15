@@ -2,6 +2,10 @@
     "catalog": "https://s3-west.nrp-nautilus.io/public-data/stac/catalog.json",
     "titiler_url": "https://titiler.nrp-nautilus.io",
     "mcp_url": "https://duckdb-mcp.nrp-nautilus.io/mcp",
+    "mcp_servers": [
+        { "url": "https://duckdb-mcp.nrp-nautilus.io/mcp" },
+        { "url": "https://sdm-mcp.nrp-nautilus.io/mcp", "optional": true }
+    ],
     "auto_approve": true,
     "draw_enabled": true,
     "geocoder": {
@@ -48,7 +52,8 @@
             "How many people live inside existing protected areas?",
             "Show me protected areas in the Amazon and overlay Indigenous and community lands.",
             "Which ecoregions are least represented in the current protected-area network?",
-            "Show me species richness for mammals and identify the top 5 protected areas by mean richness."
+            "Show me species richness for mammals and identify the top 5 protected areas by mean richness.",
+            "Model the habitat suitability of the Iberian lynx under current and 2050 SSP5-8.5 climate and show it with protected areas."
         ]
     },
     "links": {

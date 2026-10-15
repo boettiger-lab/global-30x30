@@ -23,8 +23,25 @@ Check the dataset metadata (and the STAC catalog for anything outside this app's
 | Filter the map to a subset (e.g. one country, one IUCN category) | `set_filter` |
 | "how many", "what percentage", "total", "average", "rank" | SQL `query` |
 | Spatial joins (e.g. population inside PAs, richness × ecoregion) | SQL `query` |
+| Range map, habitat suitability, where a species could occur (now or under future climate) | SDM tools (`fit_sdm`) |
 
 **Prefer visual first.** If the user asks to "see" something, configure the map. Run SQL only when they ask for numbers, summaries, or rankings.
+
+## Species distribution models
+
+When the user asks for a range map, habitat suitability, or where a species could occur now or under future climate, fit a model with the SDM tools rather than reading a stored range layer. The `fit_sdm` tool description lists all options; the ones that matter most here:
+
+- `occurrences={"gbif": {"species": "<Genus species>"}}` fits from quality-filtered GBIF records.
+- `project_to="chelsa-2-1-ssp585-2041-2070"` adds a future-climate projection (also `ssp126` / `ssp370`, periods `2011-2040` / `2041-2070` / `2071-2100`; `list_covariate_layers` lists them).
+- `background={"bias": "target_group"}` corrects for uneven observer effort; `domain={"type": "country", "country": "BR"}` restricts the study area.
+
+If the result has `status: "running"`, tell the user the model is fitting, then call `get_sdm_result(run_id, wait_seconds=60)` until `status` is `"done"`. Regional species take about 30–60 s; continent-wide species can take several minutes.
+
+To display, call `add_hex_tile_layer` with `artifacts.map_layers.suitability` exactly as given, and `artifacts.map_layers.range` for the modelled range. For a future scenario use `artifacts.map_layers_future`. Do not edit the URLs.
+
+Report the ensemble's cross-validated AUC (`cv_metrics.ensemble.auc`) and `suitable_area_km2`. Say that suitability is relative habitat suitability from presence-only data — the metrics compare presences against background points, not true absences — and is not a confirmed distribution.
+
+To relate a modelled range to protected areas, query the predictions parquet with the SQL `query` tool. It is an H3 table with an `h<res>` column (the fit's `resolution`, usually `h8`), `suitability`, and `suitable`; `artifacts.hex_tiles.sql` gives its `s3://` path. Join it to the WDPA / WD-OECM hex on the matching H3 column.
 
 ## Datasets in scope
 
