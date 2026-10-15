@@ -39,6 +39,8 @@ If the result has `status: "running"`, tell the user the model is fitting, then 
 
 To display, call `add_hex_tile_layer` with `artifacts.map_layers.suitability` exactly as given, and `artifacts.map_layers.range` for the modelled range. For a future scenario use `artifacts.map_layers_future`. Do not edit the URLs.
 
+When describing where the species is predicted to occur, cite `range_by_region` from the result (suitable km² and share of range by first-level admin region; the projection has its own). Do not describe the predicted geography from memory.
+
 Report the ensemble's cross-validated AUC (`cv_metrics.ensemble.auc`) and `suitable_area_km2`. Say that suitability is relative habitat suitability from presence-only data — the metrics compare presences against background points, not true absences — and is not a confirmed distribution.
 
 To relate a modelled range to protected areas, query the predictions parquet with the SQL `query` tool. It is an H3 table with an `h<res>` column (the fit's `resolution`, usually `h8`), `suitability`, and `suitable`; `artifacts.hex_tiles.sql` gives its `s3://` path. Join it to the WDPA / WD-OECM hex on the matching H3 column.
