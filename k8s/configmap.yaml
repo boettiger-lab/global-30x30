@@ -13,7 +13,7 @@ data:
   config.template.json: |
     {
         "mcp_server_url": "${MCP_SERVER_URL}",
-        "llm_model": "xiaomi/mimo-v2.6-pro",
+        "llm_model": "xiaomi/mimo-v2.6-flash",
         "transcription_model": {
             "value": "gemma-4-e4b",
             "endpoint": "/api/llm",
@@ -21,14 +21,14 @@ data:
         },
         "llm_models": [
             {
-                "value": "xiaomi/mimo-v2.6-pro",
-                "label": "MiMo V2.6 Pro (OpenRouter)",
+                "value": "xiaomi/mimo-v2.6-flash",
+                "label": "MiMo V2.6 Flash (OpenRouter)",
                 "endpoint": "/api/llm",
                 "api_key": "unused"
             },
             {
-                "value": "xiaomi/mimo-v2.6-flash",
-                "label": "MiMo V2.6 Flash (OpenRouter)",
+                "value": "xiaomi/mimo-v2.6-pro",
+                "label": "MiMo V2.6 Pro (OpenRouter)",
                 "endpoint": "/api/llm",
                 "api_key": "unused"
             },
