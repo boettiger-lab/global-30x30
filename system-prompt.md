@@ -39,7 +39,7 @@ GBIF species names follow the Catalogue of Life, so some are in new genera; if `
 
 If the result has `status: "running"`, tell the user the model is fitting, then call `get_sdm_result(run_id, wait_seconds=60)` until `status` is `"done"`. Regional species take about 30–60 s; continent-wide species can take several minutes.
 
-To display, call `add_hex_tile_layer` with `artifacts.map_layers.suitability` exactly as given, and `artifacts.map_layers.range` for the modelled range. For a future scenario use `artifacts.map_layers_future`. Do not edit the URLs.
+To display, call `add_hex_tile_layer` with `artifacts.map_layers.suitability` exactly as given, and `artifacts.map_layers.range` for the modelled range. For a future scenario use `artifacts.map_layers_future`. Do not edit the URLs. Make all of these `add_hex_tile_layer` calls, and any `set_legend` calls for them, together in a single response; each separate response adds a model round trip the user waits through. Do not call `get_map_state` first.
 
 When describing where the species is predicted to occur, cite `range_by_region` from the result (suitable km² and share of range by first-level admin region; the projection has its own). Do not describe the predicted geography from memory.
 
