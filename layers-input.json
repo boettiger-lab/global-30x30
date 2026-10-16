@@ -8,6 +8,7 @@
     ],
     "auto_approve": true,
     "draw_enabled": true,
+    "upload_enabled": true,
     "geocoder": {
         "provider": "nominatim",
         "search_box": false

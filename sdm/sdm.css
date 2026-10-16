@@ -64,3 +64,13 @@ pre.request { background: var(--surface); padding: 8px; border-radius: 6px; font
 .maplibregl-popup-content { font-size: 12px; padding: 6px 9px; }
 details.step > summary::before { content: '▸'; display: inline-block; width: 12px; transition: transform 120ms; }
 details.step[open] > summary::before { transform: rotate(90deg); }
+.export-row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.export-row .check.inline { margin-top: 0; }
+.code-seg { margin-top: 8px; }
+#code-box { position: relative; margin-top: 6px; }
+.copy-code { position: absolute; top: 6px; right: 6px; }
+.upload-panel { display: grid; gap: 6px; margin-top: 6px; }
+.upload-panel input[type="file"] { font-size: 12.5px; }
+#source-seg { margin-bottom: 6px; }
+#map-legend .swatch.round { border-radius: 50%; }
+.step-help.err { color: var(--danger); }

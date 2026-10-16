@@ -7,6 +7,7 @@
     <script src="https://unpkg.com/maplibre-gl@5.22.0/dist/maplibre-gl.js"></script>
     <link href="https://unpkg.com/maplibre-gl@5.22.0/dist/maplibre-gl.css" rel="stylesheet" />
     <script src="https://unpkg.com/pmtiles@3.0.7/dist/pmtiles.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/h3-js@4.1.0/dist/h3-js.umd.js"></script>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/SchmidtDSE/glen-charts@v0.2.1/core/style.css">
     <link rel="stylesheet" href="sdm.css">
 </head>
@@ -25,13 +26,24 @@
         <aside id="sidebar">
             <section id="controls">
                 <div class="step">
-                    <div class="step-label"><span class="step-num">1</span> Species</div>
-                    <div class="search">
+                    <div class="step-label"><span class="step-num">1</span> Occurrences</div>
+                    <div class="seg" id="source-seg" role="radiogroup" aria-label="Occurrence source">
+                        <button role="radio" aria-checked="true" data-src="gbif">GBIF records</button>
+                        <button role="radio" aria-checked="false" data-src="upload">Upload GeoJSON</button>
+                    </div>
+                    <div id="upload-panel" class="upload-panel" hidden>
+                        <input id="upload-file" type="file" accept=".geojson,.json,application/geo+json,application/json">
+                        <input id="upload-label" type="text" placeholder="Species name (optional; used for the IUCN comparison)">
+                        <div class="step-help" id="upload-help">Point features in WGS84 (longitude, latitude). A feature property <code>presence: 0</code> marks a true absence. Up to 50,000 points.</div>
+                    </div>
+                    <div class="search" id="gbif-panel">
                         <input id="species-input" type="search" autocomplete="off" spellcheck="false"
                                placeholder="Scientific or common name, e.g. Lynx pardinus or Iberian lynx">
                         <ul id="species-results" role="listbox" hidden></ul>
                     </div>
-                    <div class="step-help" id="species-help">Names are checked against the GBIF 2026-09 snapshot the model reads.</div>
+                    <div class="step-help" id="species-help" data-gbif>Names are checked against the GBIF 2026-09 snapshot the model reads.</div>
+                    <label class="check inline"><input type="checkbox" id="iucn-on" checked> Show and compare with the IUCN Red List range map, when there is one</label>
+                    <div class="step-help" id="iucn-help" hidden></div>
                 </div>
                 <div class="step">
                     <div class="step-label"><span class="step-num">2</span> Study area</div>
