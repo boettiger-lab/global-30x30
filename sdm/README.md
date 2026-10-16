@@ -19,6 +19,7 @@ The fit request is kept in the URL (`#spec=…`). Opening a link restores the se
 | File | Contents |
 |---|---|
 | `index.html` | page shell (glen-charts sidebar layout) |
+| `datasets.html` | the datasets each model reads, with citations and licenses |
 | `app.js` | controls, MCP calls, map layers, results |
 | `sdm.css` | styles added to the glen-charts stylesheet |
 | `config.json` | server URLs, initial view, protected-area layers |

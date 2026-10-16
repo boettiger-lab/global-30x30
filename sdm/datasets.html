@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Datasets — Species Distribution Model Builder</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/SchmidtDSE/glen-charts@v0.2.1/core/style.css">
+    <style>
+        html, body { background: var(--chrome-bg); height: auto; }
+        .doc { max-width: 52rem; margin: 0 auto; padding: 24px 20px 64px; font-size: 15px; line-height: 1.55; }
+        .doc h2 { font-size: 22px; margin: 0 0 6px; }
+        .doc h3 { font-size: 16px; margin: 26px 0 4px; }
+        .doc p { margin: 6px 0; color: var(--text-2); }
+        .doc .lead { color: var(--text-2); margin-bottom: 18px; }
+        .ds { border-top: 1px solid var(--line); padding-top: 4px; }
+        .ds dl { display: grid; grid-template-columns: 8.5rem 1fr; gap: 3px 12px; margin: 6px 0 0; font-size: 13.5px; }
+        .ds dt { color: var(--text-3); }
+        .ds dd { margin: 0; }
+        .ds blockquote { margin: 6px 0 0; padding: 6px 10px; background: var(--surface); border-radius: 6px; font-size: 13.5px; }
+        .doc a { color: var(--primary); }
+        .tag { display: inline-block; font-size: 11px; padding: 1px 7px; border-radius: 999px; background: var(--primary-wash); color: var(--primary-strong); margin-left: 6px; vertical-align: 2px; }
+        @media (max-width: 560px) { .ds dl { grid-template-columns: 1fr; } .ds dt { margin-top: 4px; } }
+    </style>
+</head>
+<body>
+    <header id="app-header">
+        <div class="brand"><span class="brand-mark"></span><h1>Species Distribution Model Builder</h1></div>
+        <nav class="header-links"><a href="./">Builder</a> · <a href="https://boettiger-lab.github.io/glen-sdm/" target="_blank" rel="noopener">Methods</a> · <a href="datasets.html">Datasets</a></nav>
+    </header>
+    <main class="doc">
+        <h2>Datasets and citations</h2>
+        <p class="lead">Every model fitted here reads the datasets below from the
+        <a href="https://s3-west.nrp-nautilus.io/public-data/stac/catalog.json">boettiger-lab STAC catalog</a>,
+        where each is stored as H3-indexed parquet. Please cite the original sources when you use a result.
+        How each layer enters a model is described in the
+        <a href="https://boettiger-lab.github.io/glen-sdm/data-layers.html" target="_blank" rel="noopener">data layers documentation</a>.</p>
+
+        <section class="ds">
+            <h3>GBIF occurrence records <span class="tag">occurrences</span></h3>
+            <p>Species records, quality-filtered and reduced to one presence per H3 cell. Species names in the search box are checked against this snapshot's species index.</p>
+            <dl>
+                <dt>Version</dt><dd>AWS Open Data snapshot of 2026-09-01</dd>
+                <dt>License</dt><dd>Per-record CC0, CC-BY or CC-BY-NC; the aggregate is treated as non-commercial. <a href="https://www.gbif.org/terms">GBIF terms of use</a></dd>
+                <dt>Catalog</dt><dd><a href="https://s3-west.nrp-nautilus.io/public-gbif/stac-collection.json">gbif-derived</a></dd>
+            </dl>
+            <blockquote>GBIF.org (2026). GBIF Occurrence Data, AWS Open Data snapshot 2026-09-01. <a href="https://registry.opendata.aws/gbif/">https://registry.opendata.aws/gbif/</a>. Accessed 2026-09-09.</blockquote>
+        </section>
+
+        <section class="ds">
+            <h3>CHELSA 2.1 bioclimatic variables <span class="tag">climate predictors</span> <span class="tag">future scenarios</span></h3>
+            <p>Seven bioclim variables (bio1, bio4, bio5, bio6, bio12, bio15, bio17) for the observed 1981–2010 baseline, and for SSP1-2.6, SSP3-7.0 and SSP5-8.5 in 2011–2040, 2041–2070 and 2071–2100. Projections use the median of CHELSA's five global climate models.</p>
+            <dl>
+                <dt>License</dt><dd>CC0-1.0; <a href="https://chelsa-climate.org/terms-of-use/">CHELSA terms of use</a></dd>
+                <dt>Catalog</dt><dd><a href="https://s3-west.nrp-nautilus.io/public-bioclimate/stac-collection.json">bioclimate</a> (baseline and nine future collections)</dd>
+            </dl>
+            <blockquote>Karger, D. N., Conrad, O., Böhner, J., Kawohl, T., Kreft, H., Soria-Auza, R. W., Zimmermann, N. E., Linder, H. P. &amp; Kessler, M. (2017). Climatologies at high resolution for the earth's land surface areas. <i>Scientific Data</i>, 4, 170122. <a href="https://doi.org/10.1038/sdata.2017.122">doi:10.1038/sdata.2017.122</a></blockquote>
+        </section>
+
+        <section class="ds">
+            <h3>Copernicus DEM GLO-90 <span class="tag">elevation predictors</span></h3>
+            <p>Global 90 m digital surface model, used for mean elevation and terrain roughness per cell.</p>
+            <dl>
+                <dt>License</dt><dd><a href="https://spacedata.copernicus.eu/documents/20126/0/CSCDA_ESA_Mission-specific+Annex.pdf">Copernicus DEM licence (ESA mission-specific annex)</a></dd>
+                <dt>Catalog</dt><dd><a href="https://s3-west.nrp-nautilus.io/public-dem/copernicus-glo90/stac-collection.json">copernicus-glo90</a></dd>
+            </dl>
+            <blockquote>European Space Agency (2024). Copernicus Global Digital Elevation Model, GLO-90. <a href="https://doi.org/10.5270/ESA-c5d3d65">doi:10.5270/ESA-c5d3d65</a></blockquote>
+        </section>
+
+        <section class="ds">
+            <h3>Copernicus Global Land Cover 100 m (CGLS-LC100), 2019 <span class="tag">land-cover predictors</span></h3>
+            <p>Land-cover classes summarised as the share of each cell in eight groups: forest, shrub, herbaceous, cropland, urban, bare, wetland and water.</p>
+            <dl>
+                <dt>Version</dt><dd>v3.0.1, 2019</dd>
+                <dt>License</dt><dd><a href="https://creativecommons.org/licenses/by/4.0/">CC-BY-4.0</a></dd>
+                <dt>Catalog</dt><dd><a href="https://s3-west.nrp-nautilus.io/public-land-cover/cgls-lc100-2019/stac-collection.json">cgls-lc100-2019</a></dd>
+            </dl>
+            <blockquote>Buchhorn, M., Lesiv, M., Tsendbazar, N.-E., Herold, M., Bertels, L. &amp; Smets, B. (2020). Copernicus Global Land Cover Layers — Collection 2. <i>Remote Sensing</i>, 12(6), 1044. <a href="https://doi.org/10.3390/rs12061044">doi:10.3390/rs12061044</a></blockquote>
+        </section>
+
+        <section class="ds">
+            <h3>Global Human Modification (gHM) <span class="tag">human-modification predictor</span></h3>
+            <p>A 0–1 index of cumulative human modification of land at about 1 km, circa 2016.</p>
+            <dl>
+                <dt>License</dt><dd><a href="https://creativecommons.org/licenses/by/4.0/">CC-BY-4.0</a></dd>
+                <dt>Catalog</dt><dd><a href="https://s3-west.nrp-nautilus.io/public-human-modification/stac-collection.json">global-human-modification</a></dd>
+            </dl>
+            <blockquote>Kennedy, C. M., Oakleaf, J. R., Theobald, D. M., Baruch-Mordo, S. &amp; Kiesecker, J. (2019). Global Human Modification of Terrestrial Systems [data set]. figshare. <a href="https://doi.org/10.6084/m9.figshare.7283087">doi:10.6084/m9.figshare.7283087</a></blockquote>
+        </section>
+
+        <section class="ds">
+            <h3>Overture Maps divisions <span class="tag">study areas</span> <span class="tag">range by region</span></h3>
+            <p>Country and first-level region boundaries, used for the country and state/province study areas and to report where the modelled range lies.</p>
+            <dl>
+                <dt>Version</dt><dd>Release 2026-02-18.0</dd>
+                <dt>License</dt><dd><a href="https://cdla.dev/permissive-2-0/">CDLA-Permissive-2.0</a></dd>
+                <dt>Catalog</dt><dd><a href="https://s3-west.nrp-nautilus.io/public-overturemaps/stac-collection.json">overture-divisions</a></dd>
+            </dl>
+            <blockquote>Overture Maps Foundation (2026). Overture Maps divisions, release 2026-02-18.0. <a href="https://docs.overturemaps.org/schema/reference/divisions/division/">docs.overturemaps.org</a></blockquote>
+        </section>
+
+        <section class="ds">
+            <h3>World Database on Protected Areas (WDPA) <span class="tag">protected-area overlap</span> <span class="tag">map outlines</span></h3>
+            <p>Used for the protected-area outlines on the map and the share of the modelled range inside protected areas.</p>
+            <dl>
+                <dt>Version</dt><dd>June 2026</dd>
+                <dt>License</dt><dd><a href="https://www.protectedplanet.net/en/legal">Protected Planet terms of use</a></dd>
+                <dt>Catalog</dt><dd><a href="https://s3-west.nrp-nautilus.io/public-wdpa/wdpa/stac-collection.json">wdpa</a></dd>
+            </dl>
+            <blockquote>UNEP-WCMC and IUCN (2026). <i>Protected Planet: The World Database on Protected Areas (WDPA)</i> [Online], June 2026, Cambridge, UK: UNEP-WCMC and IUCN. Available at: <a href="https://www.protectedplanet.net">www.protectedplanet.net</a></blockquote>
+        </section>
+
+        <section class="ds">
+            <h3>World Database on OECMs (WD-OECM) <span class="tag">protected-area overlap</span> <span class="tag">map outlines</span></h3>
+            <p>Other effective area-based conservation measures, counted with WDPA toward Target 3 of the Global Biodiversity Framework.</p>
+            <dl>
+                <dt>Version</dt><dd>May 2026</dd>
+                <dt>License</dt><dd><a href="https://www.protectedplanet.net/en/legal">Protected Planet terms of use</a></dd>
+                <dt>Catalog</dt><dd><a href="https://s3-west.nrp-nautilus.io/public-wdpa/wdoecm-may-2026/stac-collection.json">wdoecm-may-2026</a></dd>
+            </dl>
+            <blockquote>UNEP-WCMC and IUCN (2026). <i>Protected Planet: The World Database on Other Effective Area-Based Conservation Measures (WD-OECM)</i> [Online], May 2026, Cambridge, UK: UNEP-WCMC and IUCN. Available at: <a href="https://www.protectedplanet.net">www.protectedplanet.net</a></blockquote>
+        </section>
+
+        <h3>Services used by this page</h3>
+        <p>Species distribution models are fitted by <a href="https://github.com/boettiger-lab/glen-sdm">hexsdm</a> (<a href="https://boettiger-lab.github.io/glen-sdm/">documentation</a>). Species names are looked up with the <a href="https://techdocs.gbif.org/en/openapi/v1/species">GBIF species API</a>, and queries run on the open <a href="https://github.com/boettiger-lab/mcp-data-server">duckdb-geo MCP server</a>. The basemap is Esri World Light Gray Canvas (Esri, HERE, Garmin, © OpenStreetMap contributors), drawn with <a href="https://maplibre.org/">MapLibre GL JS</a>.</p>
+    </main>
+</body>
+</html>
