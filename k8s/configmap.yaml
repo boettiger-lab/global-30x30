@@ -34,6 +34,12 @@ data:
                 "api_key": "unused"
             },
             {
+                "value": "qwen/qwen3.8-flash",
+                "label": "Qwen3.8 Flash (OpenRouter)",
+                "endpoint": "/api/llm",
+                "api_key": "unused"
+            },
+            {
                 "value": "z-ai/glm-5.2",
                 "label": "GLM-5.2 (OpenRouter)",
                 "endpoint": "/api/llm",
