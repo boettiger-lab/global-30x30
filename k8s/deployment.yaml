@@ -35,6 +35,7 @@ spec:
           cp /tmp/repo/docs.html /usr/share/nginx/html/
           cp /tmp/repo/layers-input.json /usr/share/nginx/html/
           cp /tmp/repo/system-prompt.md /usr/share/nginx/html/
+          cp -r /tmp/repo/sdm /usr/share/nginx/html/
         volumeMounts:
         - name: website-content
           mountPath: /usr/share/nginx/html

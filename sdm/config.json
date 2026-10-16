@@ -1,0 +1,21 @@
+{
+    "sdm_url": "https://sdm-mcp.nrp-nautilus.io/mcp",
+    "mcp_url": "https://duckdb-mcp.nrp-nautilus.io/mcp",
+    "view": { "center": [0, 20], "zoom": 1.6 },
+    "protected_areas": [
+        {
+            "id": "wdpa", "label": "Protected areas (WDPA)",
+            "pmtiles": "https://s3-west.nrp-nautilus.io/public-wdpa/wdpa-june-2026.pmtiles",
+            "source_layer": "wdpa-june-2026",
+            "hex": "s3://public-wdpa/wdpa/hex/h0=*/data_0.parquet",
+            "color": "#1b5e20"
+        },
+        {
+            "id": "oecm", "label": "OECMs (WD-OECM)",
+            "pmtiles": "https://s3-west.nrp-nautilus.io/public-wdpa/wdoecm-may-2026/wdoecm-may-2026.pmtiles",
+            "source_layer": "wdoecm-may-2026",
+            "hex": "s3://public-wdpa/wdoecm-may-2026/hex/h0=*/data_0.parquet",
+            "color": "#00838f"
+        }
+    ]
+}
