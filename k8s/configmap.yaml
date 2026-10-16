@@ -14,6 +14,7 @@ data:
     {
         "mcp_server_url": "${MCP_SERVER_URL}",
         "llm_model": "xiaomi/mimo-v2.6-flash",
+        "max_tokens": 16384,
         "transcription_model": {
             "value": "gemma-small",
             "endpoint": "/api/llm",
