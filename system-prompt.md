@@ -37,6 +37,8 @@ When the user asks for a range map, habitat suitability, or where a species coul
 
 GBIF species names follow the Catalogue of Life, so some are in new genera; if `fit_sdm` rejects a name, retry with the suggested name it returns and tell the user. Records of listed species often have generalised coordinates, which the default 1 km uncertainty filter drops; when the result has an `occurrences.uncertainty_note`, report it. Raise `max_uncertainty_m` only if the user accepts a coarser model, and then also use a coarser `resolution` (5 or 6).
 
+The SDM predictors are all terrestrial. If `fit_sdm` refuses a fit because few occupied cells are on land (a marine or largely offshore species), tell the user that this tool cannot model marine species; do not retry with `allow_offshore` unless the user explicitly asks for a model of the land cells only.
+
 If the result has `status: "running"`, tell the user the model is fitting, then call `get_sdm_result(run_id, wait_seconds=60)` until `status` is `"done"`. Regional species take about 30–60 s; continent-wide species can take several minutes.
 
 To display, call `add_hex_tile_layer` with `artifacts.map_layers.suitability` exactly as given, and `artifacts.map_layers.range` for the modelled range. For a future scenario use `artifacts.map_layers_future`. Do not edit the URLs. Make all of these `add_hex_tile_layer` calls, and any `set_legend` calls for them, together in a single response; each separate response adds a model round trip the user waits through. Do not call `get_map_state` first.

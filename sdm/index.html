@@ -75,6 +75,7 @@
                             <select id="threshold"><option value="maxSSS">maxSSS</option><option value="p10">10th percentile</option><option value="mtp">Minimum training presence</option></select></label>
                         <label>Max coordinate uncertainty (m) <input id="max-unc" type="number" min="10" step="100" value="1000"></label>
                         <label>Records from year <input id="min-year" type="number" min="1800" max="2026" placeholder="any"></label>
+                        <label class="check span2"><input type="checkbox" id="allow-offshore"> Fit even if most records are offshore (models only the land cells; predictors are terrestrial)</label>
                     </div>
                 </details>
                 <div class="run-row">

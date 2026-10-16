@@ -26,6 +26,7 @@ const IUCN_HEX = 's3://public-iucn/iucn-ranges-2025/hex/h0=*/data_0.parquet';
 const IUCN_INDEX = 's3://public-iucn/iucn-ranges-2025/species-h0-index.parquet';
 const IUCN_POLY = 's3://public-iucn/iucn-ranges-2025.parquet';
 const GBIF_HEX = 's3://public-gbif/2026-09/hex/h0=*/data_0.parquet';
+const CHELSA_HEX = 's3://public-bioclimate/chelsa-2-1/baseline-1981-2010/hex/h0=*/data_0.parquet';
 const GBIF_BAD_ISSUES = "['ZERO_COORDINATE','COORDINATE_INVALID','COORDINATE_OUT_OF_RANGE','COUNTRY_COORDINATE_MISMATCH']";
 const DOMAIN_TYPES = [
     { id: 'buffer', label: 'Around the records' },
@@ -288,6 +289,7 @@ let previewSeq = 0;
  *  aggregated to H3 resolution 6 (resolution 4 for very widespread species). */
 async function previewGbif(name) {
     const seq = ++previewSeq;
+    document.querySelectorAll('.land-warn').forEach(e => e.remove());
     const unc = Number($('max-unc').value) || 1000;
     const year = $('min-year').value ? ` AND year >= ${Number($('min-year').value)}` : '';
     try {
@@ -313,10 +315,38 @@ async function previewGbif(name) {
         if (el) el.textContent = `· ${fmt(kept, 'int')} usable records`
             + (dropped ? `, ${fmt(dropped, 'int')} more with coordinate uncertainty over ${fmt(unc, 'int')} m (${fmt(dropped / (kept + dropped), 'pct')})` : '');
         if (!state.result) fitToGeojson(cellPoints(rows));
+        checkLand(name, unc, year, seq);
     } catch (err) {
         const el = $('occ-summary');
         if (el && seq === previewSeq) el.textContent = `· record preview failed: ${err.message.slice(0, 120)}`;
     }
+}
+
+/** Share of the species' occupied cells that are on land (CHELSA land cells),
+ *  from a sample of up to 4,000 cells. The SDM server refuses a fit below 50%,
+ *  because every predictor is terrestrial; this warns before the user fits. */
+async function checkLand(name, unc, year, seq) {
+    try {
+        const [row] = await db.query(`
+            WITH occ AS (
+                SELECT DISTINCT h0, h8 FROM read_parquet('${GBIF_HEX}', hive_partitioning=true)
+                WHERE h0 IN (SELECT h0 FROM read_parquet('${GBIF_INDEX}') WHERE species = ${sqlStr(name)})
+                  AND species = ${sqlStr(name)} AND NOT list_has_any(issue, ${GBIF_BAD_ISSUES})
+                  AND (coordinateuncertaintyinmeters IS NULL OR coordinateuncertaintyinmeters <= ${unc})${year}),
+            s AS (SELECT * FROM occ USING SAMPLE 4000 ROWS),
+            land AS (SELECT h8 FROM read_parquet('${CHELSA_HEX}', hive_partitioning=true)
+                     WHERE h0 IN (SELECT DISTINCT h0 FROM s) AND h8 IN (SELECT h8 FROM s))
+            SELECT count(*) AS cells, count(*) FILTER (h8 IN (SELECT h8 FROM land)) AS land FROM s`);
+        if (seq !== previewSeq || !row?.cells) return;
+        const share = row.land / row.cells;
+        const el = $('occ-summary');
+        document.querySelectorAll('.land-warn').forEach(e => e.remove());
+        if (el && share < 0.8) {
+            el.insertAdjacentHTML('afterend', `<div class="land-warn${share < 0.5 ? ' err' : ''}">${share < 0.5
+                ? `Only ${fmt(share, 'pct')} of this species' occupied cells are on land. The predictors are all terrestrial, so the server will refuse the fit: this looks like a marine or largely offshore species.`
+                : `${fmt(1 - share, 'pct')} of this species' occupied cells are offshore; the model will describe only the land part of its distribution.`}</div>`);
+        }
+    } catch { /* the server applies the same check when fitting */ }
 }
 
 let iucnSeq = 0;
@@ -521,9 +551,12 @@ function domainSpec() {
     if (state.domain === 'country') return { type: 'country', country: $('country').value };
     if (state.domain === 'region') return { type: 'region', region: $('region').value.trim().toUpperCase() };
     if (state._bbox) return { type: 'bbox', bbox: state._bbox };
+    // A zoomed-out map view can run past ±180° longitude; clamp to valid coordinates.
     const b = map.getBounds();
     const r = v => Math.round(v * 100) / 100;
-    return { type: 'bbox', bbox: [r(b.getWest()), r(b.getSouth()), r(b.getEast()), r(b.getNorth())] };
+    const lng = v => r(Math.max(-180, Math.min(180, v)));
+    const lat = v => r(Math.max(-85, Math.min(85, v)));
+    return { type: 'bbox', bbox: [lng(b.getWest()), lat(b.getSouth()), lng(b.getEast()), lat(b.getNorth())] };
 }
 
 function scenarioLabel(s) {
@@ -581,6 +614,7 @@ function buildSpec() {
     if ($('resolution').value) spec.resolution = Number($('resolution').value);
     if ($('threshold').value !== 'maxSSS') spec.threshold = $('threshold').value;
     if ($('scenario').value) spec.project_to = $('scenario').value;
+    if ($('allow-offshore').checked) spec.allow_offshore = true;
     return spec;
 }
 
@@ -609,6 +643,7 @@ function applySpec(spec) {
     if (spec.resolution) $('resolution').value = spec.resolution;
     if (spec.threshold) $('threshold').value = spec.threshold;
     if (spec.project_to) $('scenario').value = spec.project_to;
+    if (spec.allow_offshore) $('allow-offshore').checked = true;
 }
 
 function updateRunButton() {
