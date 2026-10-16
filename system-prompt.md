@@ -45,7 +45,7 @@ When describing where the species is predicted to occur, cite `range_by_region` 
 
 Report the ensemble's cross-validated AUC (`cv_metrics.ensemble.auc`) and `suitable_area_km2`. Say that suitability is relative habitat suitability from presence-only data — the metrics compare presences against background points, not true absences — and is not a confirmed distribution.
 
-To relate a modelled range to protected areas, query the predictions parquet with the SQL `query` tool. It is an H3 table with an `h<res>` column (the fit's `resolution`, usually `h8`), `suitability`, and `suitable`; `artifacts.hex_tiles.sql` gives its `s3://` path. Join it to the WDPA / WD-OECM hex on the matching H3 column.
+To relate a modelled range to protected areas, query the predictions parquet with the SQL `query` tool. It is an H3 table with an `h<res>` column (the fit's `resolution`, usually `h8`), `suitability`, and `suitable`; `artifacts.hex_tiles.sql` gives its `s3://` path; read it by that path, not the https URL. Join it to the WDPA / WD-OECM hex on the matching H3 column, and restrict the protected-area side to the range's h0 partitions (`WHERE h0 IN (SELECT DISTINCT h3_cell_to_parent(h8, 0)::BIGINT FROM pred)`), or the query scans the global hex and takes minutes instead of seconds. Predictions cover land cells only, so no land-cover mask is needed. Show the map layers before starting this query, and tell the user the overlap is being computed.
 
 ## Datasets in scope
 
