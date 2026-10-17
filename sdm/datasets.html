@@ -121,6 +121,28 @@
         </section>
 
         <section class="ds">
+            <h3>OBIS occurrence records <span class="tag">marine occurrences</span></h3>
+            <p>Marine species records for marine models: quality-controlled, absences excluded, names from the World Register of Marine Species (WoRMS), which the species search also uses.</p>
+            <dl>
+                <dt>Version</dt><dd>Rolling OBIS export, read 2026-09-09</dd>
+                <dt>License</dt><dd><a href="https://creativecommons.org/licenses/by-nc/4.0/">CC-BY-NC-4.0</a>; per-dataset terms in the catalog record</dd>
+                <dt>Catalog</dt><dd><a href="https://s3-west.nrp-nautilus.io/public-obis/stac-collection.json">obis-derived</a></dd>
+            </dl>
+            <blockquote>OBIS (2026). Ocean Biodiversity Information System. Intergovernmental Oceanographic Commission of UNESCO. <a href="https://obis.org">https://obis.org</a>. Data read 2026-09-09.</blockquote>
+        </section>
+
+        <section class="ds">
+            <h3>Bio-ORACLE v3.0 <span class="tag">marine predictors</span></h3>
+            <p>Depth-mean ocean temperature, salinity, oxygen, productivity, pH, nutrients and currents, and seafloor terrain, for the 2010s, at H3 resolution 6.</p>
+            <dl>
+                <dt>Version</dt><dd>v3.0, baseline 2000–2019 (decade 2010)</dd>
+                <dt>License</dt><dd>See the <a href="https://www.bio-oracle.org/">Bio-ORACLE terms</a></dd>
+                <dt>Catalog</dt><dd><a href="https://s3-west.nrp-nautilus.io/public-bio-oracle/stac-collection.json">bio-oracle</a></dd>
+            </dl>
+            <blockquote>Assis, J., Fernández Bejarano, S. J., Salazar, V. W., Schepers, L., Gouvêa, L., Fragkopoulou, E., Leclercq, F., Vanhoorne, B., Tyberghein, L., Serrão, E. A., Verbruggen, H. &amp; De Clerck, O. (2024). Bio-ORACLE v3.0. Pushing marine data layers to the CMIP6 Earth system models of climate change research. <i>Global Ecology and Biogeography</i>. <a href="https://doi.org/10.1111/geb.13813">doi:10.1111/geb.13813</a>; and Tyberghein, L., Verbruggen, H., Pauly, K., Troupin, C., Mineur, F. &amp; De Clerck, O. (2012). Bio-ORACLE: a global environmental dataset for marine species distribution modelling. <i>Global Ecology and Biogeography</i>, 21, 272–281. <a href="https://doi.org/10.1111/j.1466-8238.2011.00656.x">doi:10.1111/j.1466-8238.2011.00656.x</a></blockquote>
+        </section>
+
+        <section class="ds">
             <h3>IUCN Red List range maps <span class="tag">expert range comparison</span></h3>
             <p>Expert-drawn species ranges, shown as an outline and compared with the modelled range (extant, probably extant and possibly extant parts of the native or reintroduced range). Not included in exports, under the IUCN terms of use.</p>
             <dl>
@@ -132,7 +154,7 @@
         </section>
 
         <h3>Services used by this page</h3>
-        <p>Species distribution models are fitted by <a href="https://github.com/boettiger-lab/glen-sdm">hexsdm</a> (<a href="https://boettiger-lab.github.io/glen-sdm/">documentation</a>). Species names are looked up with the <a href="https://techdocs.gbif.org/en/openapi/v1/species">GBIF species API</a>, and queries run on the open <a href="https://github.com/boettiger-lab/mcp-data-server">duckdb-geo MCP server</a>. The basemap is Esri World Light Gray Canvas (Esri, HERE, Garmin, © OpenStreetMap contributors), drawn with <a href="https://maplibre.org/">MapLibre GL JS</a>.</p>
+        <p>Species distribution models are fitted by <a href="https://github.com/boettiger-lab/glen-sdm">hexsdm</a> (<a href="https://boettiger-lab.github.io/glen-sdm/">documentation</a>). Species names are looked up with the <a href="https://techdocs.gbif.org/en/openapi/v1/species">GBIF species API</a> and, for marine species, the <a href="https://www.marinespecies.org/rest/">WoRMS REST API</a>, and queries run on the open <a href="https://github.com/boettiger-lab/mcp-data-server">duckdb-geo MCP server</a>. The basemap is Esri World Light Gray Canvas (Esri, HERE, Garmin, © OpenStreetMap contributors), drawn with <a href="https://maplibre.org/">MapLibre GL JS</a>.</p>
     </main>
 </body>
 </html>

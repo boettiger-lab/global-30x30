@@ -10,6 +10,8 @@ The page calls MCP tools directly from the browser, one stateless JSON-RPC POST 
 | | `fit_sdm`, `get_sdm_result` | fitting, and waiting for long fits |
 | `duckdb-mcp` | `query` | checking species names against the GBIF 2026-09 snapshot index; previewing GBIF records; the IUCN range and its agreement with the model; the share of the modelled range in protected areas and OECMs |
 
+A Land / Marine switch chooses the realm. Marine models (a prototype on the server) use OBIS records, with names from the [WoRMS](https://www.marinespecies.org/) REST API, and Bio-ORACLE v3.0 ocean and seafloor predictors at H3 resolution 6. They take a buffer or map-view study area with an optional sea-floor depth range; future scenarios are not yet available for them.
+
 Occurrences come either from GBIF or from an uploaded GeoJSON of points (a feature property `presence: 0` marks a true absence; up to 50,000 points), sent to `fit_sdm` as coordinates. Choosing a GBIF species previews its records on the map with the server's filters, and reports how many the coordinate-uncertainty filter would drop.
 
 When the IUCN Red List has a range map for the species (IUCN 2025, matched by name, or by epithet when the genus differs), its outline is drawn, and after a fit the page reports the share of the modelled range inside it, the share of it modelled as suitable within the study area, and the AUC of suitability against it. The IUCN range is never included in exports.

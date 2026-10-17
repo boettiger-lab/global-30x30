@@ -14,7 +14,7 @@
 <body>
     <header id="app-header">
         <div class="brand"><span class="brand-mark"></span><h1>Species Distribution Model Builder</h1>
-            <span class="brand-sub">GBIF records, CHELSA climate and land cover on the H3 grid</span></div>
+            <span class="brand-sub">GBIF and OBIS records with land or ocean predictors on the H3 grid</span></div>
         <nav class="header-links"><a href="../">30×30 chat</a> · <a href="https://boettiger-lab.github.io/glen-sdm/" target="_blank" rel="noopener">Methods</a> · <a href="datasets.html">Datasets</a></nav>
     </header>
     <main id="layout">
@@ -25,9 +25,16 @@
         </section>
         <aside id="sidebar">
             <section id="controls">
+                <div class="step realm-step">
+                    <div class="seg" id="realm-seg" role="radiogroup" aria-label="Realm">
+                        <button role="radio" aria-checked="true" data-realm="land">Land species</button>
+                        <button role="radio" aria-checked="false" data-realm="marine">Marine species (prototype)</button>
+                    </div>
+                </div>
                 <div class="step">
                     <div class="step-label"><span class="step-num">1</span> Occurrences</div>
                     <div class="seg" id="source-seg" role="radiogroup" aria-label="Occurrence source">
+                        <button role="radio" aria-checked="false" data-src="obis" hidden>OBIS records</button>
                         <button role="radio" aria-checked="true" data-src="gbif">GBIF records</button>
                         <button role="radio" aria-checked="false" data-src="upload">Upload GeoJSON</button>
                     </div>
@@ -75,7 +82,7 @@
                             <select id="threshold"><option value="maxSSS">maxSSS</option><option value="p10">10th percentile</option><option value="mtp">Minimum training presence</option></select></label>
                         <label>Max coordinate uncertainty (m) <input id="max-unc" type="number" min="10" step="100" value="1000"></label>
                         <label>Records from year <input id="min-year" type="number" min="1800" max="2026" placeholder="any"></label>
-                        <label class="check span2"><input type="checkbox" id="allow-offshore"> Fit even if most records are offshore (models only the land cells; predictors are terrestrial)</label>
+                        <label class="check span2"><input type="checkbox" id="allow-offshore"> <span id="allow-offshore-label">Fit even if most records are offshore (models only the land cells; predictors are terrestrial)</span></label>
                     </div>
                 </details>
                 <div class="run-row">

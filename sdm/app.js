@@ -26,6 +26,7 @@ const IUCN_HEX = 's3://public-iucn/iucn-ranges-2025/hex/h0=*/data_0.parquet';
 const IUCN_INDEX = 's3://public-iucn/iucn-ranges-2025/species-h0-index.parquet';
 const IUCN_POLY = 's3://public-iucn/iucn-ranges-2025.parquet';
 const GBIF_HEX = 's3://public-gbif/2026-09/hex/h0=*/data_0.parquet';
+const OBIS_HEX = 's3://public-obis/2026-09-09/hex/h0=*/data_0.parquet';
 const CHELSA_HEX = 's3://public-bioclimate/chelsa-2-1/baseline-1981-2010/hex/h0=*/data_0.parquet';
 const GBIF_BAD_ISSUES = "['ZERO_COORDINATE','COORDINATE_INVALID','COORDINATE_OUT_OF_RANGE','COUNTRY_COORDINATE_MISMATCH']";
 const DOMAIN_TYPES = [
@@ -36,7 +37,7 @@ const DOMAIN_TYPES = [
 ];
 
 const $ = id => document.getElementById(id);
-const state = { source: 'gbif', species: null, upload: null, iucn: null, domain: 'buffer', result: null, view: 'current', running: false };
+const state = { realm: 'land', source: 'gbif', species: null, upload: null, iucn: null, domain: 'buffer', result: null, view: 'current', running: false };
 
 const cfg = await (await fetch('config.json')).json();
 const sdm = new McpQueryClient(cfg.sdm_url, { timeoutMs: 180000 });
@@ -139,7 +140,7 @@ function renderMapChips() {
     const btn = (key, label, c) => `<button class="map-btn" data-layer="${key}" aria-pressed="${layerOn[key]}" style="--c:${c}">${label}</button>`;
     const views = r?.artifacts.map_layers_future
         ? `<span class="lbl">Climate</span>
-           <button class="map-btn" data-view="current" aria-pressed="${state.view === 'current'}" style="--c:var(--primary)">1981–2010</button>
+           <button class="map-btn" data-view="current" aria-pressed="${state.view === 'current'}" style="--c:var(--primary)">${baseLabel(true)}</button>
            <button class="map-btn" data-view="future" aria-pressed="${state.view === 'future'}" style="--c:var(--primary)">${escapeHtml(scenarioLabel(r.projection?.scenario || ''))}</button>`
         : '';
     chips.innerHTML = `${views}<span class="lbl">Show</span>`
@@ -164,7 +165,7 @@ function renderLegend() {
     const hasOcc = !!map.getLayer('occ') && layerOn.occ, hasIucn = !!map.getLayer('iucn') && layerOn.iucn;
     el.hidden = !(r || hasOcc || hasIucn);
     if (el.hidden) return;
-    const when = state.view === 'future' ? scenarioLabel(r?.projection?.scenario || '') : '1981–2010 climate';
+    const when = state.view === 'future' ? scenarioLabel(r?.projection?.scenario || '') : baseLabel();
     el.innerHTML = `<div class="title">${escapeHtml(speciesLabel())}</div>
         ${r && layerOn.suit ? `<div class="row">Habitat suitability, ${escapeHtml(when)}</div>
         <div class="ramp">${VIRIDIS.map(c => `<span style="background:${c}"></span>`).join('')}</div>
@@ -219,6 +220,25 @@ async function lookupSpecies(q) {
     return rows.map(r => ({ name: r.species, n_h0: r.n_h0, ...(cands.get(r.species) || {}) }));
 }
 
+/** Marine species from the World Register of Marine Species (OBIS uses WoRMS
+ *  names): scientific and common-name matches, resolved to accepted species. */
+async function lookupWorms(q) {
+    const base = 'https://www.marinespecies.org/rest';
+    const urls = [`${base}/AphiaRecordsByName/${encodeURIComponent(q)}?like=true&marine_only=true`,
+                  `${base}/AphiaRecordsByVernacular/${encodeURIComponent(q)}?like=true`];
+    const res = await Promise.allSettled(urls.map(u => fetch(u).then(r => (r.status === 204 ? [] : r.json()))));
+    const seen = new Map();
+    for (const r of res) {
+        if (r.status !== 'fulfilled' || !Array.isArray(r.value)) continue;
+        for (const a of r.value) {
+            if (a.rank !== 'Species' || !a.valid_AphiaID || !a.valid_name) continue;
+            if (a.isMarine === 0 && a.isBrackish !== 1) continue;
+            if (!seen.has(a.valid_AphiaID)) seen.set(a.valid_AphiaID, { name: a.valid_name, aphiaid: a.valid_AphiaID, cls: a.class || a.order || '' });
+        }
+    }
+    return [...seen.values()].slice(0, 12);
+}
+
 let searchSeq = 0;
 let searchTimer = null;
 $('species-input').addEventListener('input', e => {
@@ -232,11 +252,11 @@ $('species-input').addEventListener('input', e => {
         ul.hidden = false;
         ul.innerHTML = '<li class="empty">Searching…</li>';
         try {
-            const hits = await lookupSpecies(q);
+            const hits = state.source === 'obis' ? await lookupWorms(q) : await lookupSpecies(q);
             if (seq !== searchSeq) return;
             ul.innerHTML = hits.length
                 ? hits.map((h, i) => `<li role="option" data-i="${i}"><span><i>${escapeHtml(h.name)}</i>${h.common ? ` — ${escapeHtml(h.common)}` : ''}</span><small>${escapeHtml(h.cls || '')}</small></li>`).join('')
-                : '<li class="empty">No species of that name in the GBIF 2026-09 snapshot.</li>';
+                : `<li class="empty">${state.source === 'obis' ? 'No marine species of that name in WoRMS.' : 'No species of that name in the GBIF 2026-09 snapshot.'}</li>`;
             ul.querySelectorAll('li[data-i]').forEach(li => li.onclick = () => chooseSpecies(hits[+li.dataset.i]));
         } catch (err) {
             if (seq === searchSeq) ul.innerHTML = `<li class="empty">Search failed: ${escapeHtml(err.message)}</li>`;
@@ -255,7 +275,13 @@ function chooseSpecies(s) {
     findIucn(s.name);
 }
 
-const speciesLabel = () => state.source === 'gbif'
+/** The period the predictors describe: CHELSA 1981–2010, or Bio-ORACLE's 2010s baseline. */
+const baseLabel = (short = false) => state.realm === 'marine'
+    ? (short ? '2010s' : '2010s ocean conditions') : (short ? '1981–2010' : '1981–2010 climate');
+const searchSource = () => state.source === 'gbif' || state.source === 'obis';
+const sourceLabel = () => state.source === 'obis' ? 'OBIS records' : state.source === 'gbif' ? 'GBIF records'
+    : `uploaded records (${state.upload?.file || ''})`;
+const speciesLabel = () => searchSource()
     ? (state.species?.name || '')
     : (state.upload?.label || 'Uploaded records');
 
@@ -293,7 +319,19 @@ async function previewGbif(name) {
     const unc = Number($('max-unc').value) || 1000;
     const year = $('min-year').value ? ` AND year >= ${Number($('min-year').value)}` : '';
     try {
-        const rows = await db.query(`
+        const obis = state.source === 'obis';
+        const recordsSql = obis
+            ? `SELECT h3_cell_to_parent(h8, 6) AS h6, coordinateuncertaintyinmeters AS u
+               FROM read_parquet('${OBIS_HEX}', hive_partitioning=true)
+               WHERE aphiaid = ${Number(state.species.aphiaid)}${year.replace('year', 'date_year')}`
+            : null;
+        const rows = obis ? await db.query(`
+            WITH r AS (${recordsSql}),
+            c AS (SELECT h6, count(*) FILTER (u IS NULL OR u <= ${unc}) AS n, count(*) FILTER (u > ${unc}) AS n_drop FROM r GROUP BY h6),
+            k AS (SELECT count(*) AS cells FROM c)
+            SELECT h3_h3_to_string(CASE WHEN (SELECT cells FROM k) > 20000 THEN h3_cell_to_parent(h6, 4) ELSE h6 END) AS cell,
+                   sum(n)::INT AS n, sum(n_drop)::INT AS n_drop
+            FROM c GROUP BY 1`) : await db.query(`
             WITH r AS (
                 SELECT h6, coordinateuncertaintyinmeters AS u
                 FROM read_parquet('${GBIF_HEX}', hive_partitioning=true)
@@ -307,15 +345,16 @@ async function previewGbif(name) {
             SELECT h3_h3_to_string(CASE WHEN (SELECT cells FROM k) > 20000 THEN h3_cell_to_parent(h6, 4) ELSE h6 END) AS cell,
                    sum(n)::INT AS n, sum(n_drop)::INT AS n_drop
             FROM c GROUP BY 1`);
-        if (seq !== previewSeq || state.source !== 'gbif') return;
+        if (seq !== previewSeq || !searchSource()) return;
         const kept = rows.reduce((a, r) => a + r.n, 0), dropped = rows.reduce((a, r) => a + r.n_drop, 0);
-        state.occLegend = `GBIF records kept by the filters (${fmt(kept, 'int')})`;
+        state.occLegend = `${obis ? 'OBIS' : 'GBIF'} records kept by the filters (${fmt(kept, 'int')})`;
         await setOverlay('occ', cellPoints(rows.filter(r => r.n > 0)), OCC_LAYER);
         const el = $('occ-summary');
         if (el) el.textContent = `· ${fmt(kept, 'int')} usable records`
             + (dropped ? `, ${fmt(dropped, 'int')} more with coordinate uncertainty over ${fmt(unc, 'int')} m (${fmt(dropped / (kept + dropped), 'pct')})` : '');
+        if (!rows.length && el) el.textContent = '· no OBIS records for this species';
         if (!state.result) fitToGeojson(cellPoints(rows));
-        checkLand(name, unc, year, seq);
+        if (!obis && state.realm === 'land') checkLand(name, unc, year, seq);
     } catch (err) {
         const el = $('occ-summary');
         if (el && seq === previewSeq) el.textContent = `· record preview failed: ${err.message.slice(0, 120)}`;
@@ -402,7 +441,7 @@ async function findIucn(name) {
     }
 }
 
-$('iucn-on').onchange = () => findIucn(state.source === 'gbif' ? state.species?.name : state.upload?.label);
+$('iucn-on').onchange = () => findIucn(searchSource() ? state.species?.name : state.upload?.label);
 
 /** Agreement between the modelled range and the IUCN range, inside the study
  *  area: shares of each covered by the other, and the AUC of suitability for
@@ -434,13 +473,22 @@ async function iucnAgreement(r) {
 const MAX_UPLOAD_POINTS = 50000;
 
 function setSource(src) {
+    // GBIF and OBIS name species differently (GBIF backbone vs WoRMS), so a chosen
+    // species does not carry over between them.
+    if (src !== state.source && (src === 'gbif' || src === 'obis') && (state.source === 'gbif' || state.source === 'obis')) {
+        state.species = null;
+        $('species-input').value = '';
+        $('species-help').innerHTML = src === 'obis'
+            ? 'Names come from the World Register of Marine Species (WoRMS), which OBIS uses.'
+            : 'Names are checked against the GBIF 2026-09 snapshot the model reads.';
+    }
     state.source = src;
     $('source-seg').querySelectorAll('button').forEach(b => b.setAttribute('aria-checked', String(b.dataset.src === src)));
-    $('gbif-panel').hidden = src !== 'gbif';
-    $('species-help').hidden = src !== 'gbif';
+    $('gbif-panel').hidden = !searchSource();
+    $('species-help').hidden = !searchSource();
     $('upload-panel').hidden = src !== 'upload';
-    // The study-area buffer and GBIF filters depend on the source; redraw what it previews.
-    if (src === 'gbif') {
+    // The study-area buffer and record filters depend on the source; redraw what it previews.
+    if (searchSource()) {
         if (state.species) { previewGbif(state.species.name); findIucn(state.species.name); }
         else { setOverlay('occ', null); findIucn(null); }
     } else {
@@ -530,7 +578,9 @@ const COUNTRIES = (() => {
 })();
 
 function renderDomain() {
-    $('domain-seg').innerHTML = DOMAIN_TYPES.map(d =>
+    const marine = state.realm === 'marine';
+    if (marine && !['buffer', 'bbox'].includes(state.domain)) state.domain = 'buffer';
+    $('domain-seg').innerHTML = DOMAIN_TYPES.filter(d => !marine || ['buffer', 'bbox'].includes(d.id)).map(d =>
         `<button role="radio" aria-checked="${state.domain === d.id}" data-d="${d.id}">${d.label}</button>`).join('');
     $('domain-seg').querySelectorAll('button').forEach(b => b.onclick = () => { state.domain = b.dataset.d; renderDomain(); });
     const opts = $('domain-opts');
@@ -544,9 +594,21 @@ function renderDomain() {
     } else {
         opts.innerHTML = 'Fits inside the area currently shown on the map.';
     }
+    if (marine) {
+        opts.insertAdjacentHTML('beforeend', `<label class="depth">Depth <input id="depth-min" type="number" min="0" step="10" value="${state._depth?.[0] ?? ''}" placeholder="0"> to
+            <input id="depth-max" type="number" min="0" step="10" value="${state._depth?.[1] ?? ''}" placeholder="any"> m (optional; limits cells and background by sea-floor depth)</label>`);
+    }
 }
 
 function domainSpec() {
+    const d = baseDomainSpec();
+    if (state.realm === 'marine' && ($('depth-min').value || $('depth-max').value)) {
+        d.depth_range = [Number($('depth-min').value) || 0, $('depth-max').value ? Number($('depth-max').value) : 11000];
+    }
+    return d;
+}
+
+function baseDomainSpec() {
     if (state.domain === 'buffer') return { type: 'buffer', buffer_km: Number($('buffer-km').value) || 100 };
     if (state.domain === 'country') return { type: 'country', country: $('country').value };
     if (state.domain === 'region') return { type: 'region', region: $('region').value.trim().toUpperCase() };
@@ -575,16 +637,55 @@ async function loadOptions() {
         .map(([id, a]) => `<label class="check" title="${escapeHtml(a.summary)} (${escapeHtml(a.reference)})">
             <input type="checkbox" name="algo" value="${id}" ${defaults.has(id) ? 'checked' : ''}>
             <span>${escapeHtml(id)}<small>${escapeHtml(a.data)}, ${escapeHtml(a.speed)}</small></span></label>`).join('');
-    const covDefaults = new Set(covs.default);
-    $('cov-checks').innerHTML = Object.entries(covs.layers)
-        .map(([id, c]) => `<label class="check" title="${escapeHtml(c.description)}">
-            <input type="checkbox" name="cov" value="${id}" ${covDefaults.has(id) ? 'checked' : ''}>
-            <span>${escapeHtml(id.replace(/_/g, ' '))}<small>${escapeHtml(c.columns.join(', '))}</small></span></label>`).join('');
+    state.covs = covs;
+    renderCovariates();
     $('scenario').insertAdjacentHTML('beforeend', covs.future_scenarios
         .map(s => `<option value="${s}">${escapeHtml(scenarioLabel(s))}</option>`).join(''));
     document.querySelectorAll('input[name="algo"]').forEach(i => i.onchange = updateRunButton);
+}
+
+/** Predictor checkboxes for the current realm, from list_covariate_layers. */
+function renderCovariates(selected) {
+    const c = state.covs;
+    if (!c) return;
+    const marine = state.realm === 'marine';
+    const layers = marine ? c.marine_layers : c.layers;
+    const on = new Set(selected || (marine ? c.marine_default : c.default));
+    $('cov-checks').innerHTML = Object.entries(layers || {})
+        .map(([id, l]) => `<label class="check" title="${escapeHtml(l.description)}">
+            <input type="checkbox" name="cov" value="${id}" ${on.has(id) ? 'checked' : ''}>
+            <span>${escapeHtml(id.replace(/_/g, ' '))}<small>${escapeHtml(l.columns.join(', '))}</small></span></label>`).join('');
     document.querySelectorAll('input[name="cov"]').forEach(i => i.onchange = updateRunButton);
 }
+
+/** Switch between land and marine models: occurrence sources, study areas,
+ *  predictors and future scenarios all differ. */
+function setRealm(realm, { keepSource = false } = {}) {
+    state.realm = realm;
+    const marine = realm === 'marine';
+    $('realm-seg').querySelectorAll('button').forEach(b => b.setAttribute('aria-checked', String(b.dataset.realm === realm)));
+    $('source-seg').querySelector('[data-src="obis"]').hidden = !marine;
+    $('scenario').disabled = marine;
+    if (marine) $('scenario').value = '';
+    $('scenario').title = marine ? 'Future marine layers are not in the catalog yet' : '';
+    $('allow-offshore-label').textContent = marine
+        ? 'Fit even if most records lack marine predictors (land, or outside the depth range)'
+        : 'Fit even if most records are offshore (models only the land cells; predictors are terrestrial)';
+    $('species-input').placeholder = marine
+        ? 'Scientific or common name, e.g. Posidonia oceanica or loggerhead turtle'
+        : 'Scientific or common name, e.g. Lynx pardinus or Iberian lynx';
+    renderCovariates();
+    renderDomain();
+    if (!keepSource) {
+        state.species = null;
+        $('species-input').value = '';
+        $('species-help').innerHTML = marine
+            ? 'Names come from the World Register of Marine Species (WoRMS), which OBIS uses.'
+            : 'Names are checked against the GBIF 2026-09 snapshot the model reads.';
+        setSource(marine ? 'obis' : 'gbif');
+    }
+}
+$('realm-seg').querySelectorAll('button').forEach(b => b.onclick = () => setRealm(b.dataset.realm));
 
 const checked = name => [...document.querySelectorAll(`input[name="${name}"]:checked`)].map(i => i.value);
 
@@ -594,11 +695,13 @@ function buildSpec() {
         occurrences = { points: state.upload.points };
         if (state.upload.absences.length) occurrences.absences = state.upload.absences;
     } else {
-        const gbif = { species: state.species.name };
+        const q = state.source === 'obis'
+            ? { aphiaid: state.species.aphiaid, species: state.species.name }
+            : { species: state.species.name };
         const unc = Number($('max-unc').value);
-        if (unc && unc !== 1000) gbif.max_uncertainty_m = unc;
-        if ($('min-year').value) gbif.min_year = Number($('min-year').value);
-        occurrences = { gbif };
+        if (unc && unc !== 1000) q.max_uncertainty_m = unc;
+        if ($('min-year').value) q.min_year = Number($('min-year').value);
+        occurrences = { [state.source]: q };
     }
     const spec = {
         occurrences,
@@ -613,15 +716,20 @@ function buildSpec() {
     }
     if ($('resolution').value) spec.resolution = Number($('resolution').value);
     if ($('threshold').value !== 'maxSSS') spec.threshold = $('threshold').value;
-    if ($('scenario').value) spec.project_to = $('scenario').value;
-    if ($('allow-offshore').checked) spec.allow_offshore = true;
+    if (state.realm === 'marine') spec.realm = 'marine';
+    else if ($('scenario').value) spec.project_to = $('scenario').value;
+    if ($('allow-offshore').checked) spec[state.realm === 'marine' ? 'allow_onshore' : 'allow_offshore'] = true;
     return spec;
 }
 
 /** Put a saved spec back into the controls (from a #spec= link). */
 function applySpec(spec) {
-    const g = spec.occurrences?.gbif || {};
-    if (g.species) chooseSpecies({ name: g.species });
+    setRealm(spec.realm === 'marine' ? 'marine' : 'land');
+    const src = spec.occurrences?.obis ? 'obis' : 'gbif';
+    setSource(src);
+    const g = spec.occurrences?.[src] || {};
+    state._depth = spec.domain?.depth_range;
+    if (g.species) chooseSpecies({ name: g.species, aphiaid: g.aphiaid });
     if (g.max_uncertainty_m) $('max-unc').value = g.max_uncertainty_m;
     if (g.min_year) $('min-year').value = g.min_year;
     const setChecks = (name, vals) => vals && document.querySelectorAll(`input[name="${name}"]`)
@@ -643,13 +751,14 @@ function applySpec(spec) {
     if (spec.resolution) $('resolution').value = spec.resolution;
     if (spec.threshold) $('threshold').value = spec.threshold;
     if (spec.project_to) $('scenario').value = spec.project_to;
-    if (spec.allow_offshore) $('allow-offshore').checked = true;
+    if (spec.allow_offshore || spec.allow_onshore) $('allow-offshore').checked = true;
+    if (spec.covariates) renderCovariates(spec.covariates.filter(c => typeof c === 'string'));
 }
 
 function updateRunButton() {
     const algos = checked('algo');
     $('ensemble').disabled = algos.length < 2;
-    const haveOcc = state.source === 'gbif' ? !!state.species : !!state.upload;
+    const haveOcc = searchSource() ? !!state.species : !!state.upload;
     $('run').disabled = state.running || !haveOcc || !algos.length || !checked('cov').length;
 }
 
@@ -665,7 +774,7 @@ function setStatus(text, isErr = false) {
 async function fit() {
     const spec = buildSpec();
     // An uploaded point set is too large for a link; only GBIF requests are kept in the URL.
-    history.replaceState(null, '', state.source === 'gbif' ? `#spec=${encodeURIComponent(JSON.stringify(spec))}` : location.pathname);
+    history.replaceState(null, '', searchSource() ? `#spec=${encodeURIComponent(JSON.stringify(spec))}` : location.pathname);
     state.running = true; updateRunButton();
     const t0 = Date.now();
     const tick = setInterval(() => setStatus(`Fitting… ${Math.round((Date.now() - t0) / 1000)} s`), 1000);
@@ -751,10 +860,10 @@ function renderResults(spec, r) {
         <div class="card theme-card">
             <div class="card-head"><h3><i>${escapeHtml(speciesLabel())}</i></h3>
                 <button class="ghost-btn" id="copy-link">Copy link</button></div>
-            <p class="card-blurb">${escapeHtml(final)} model at H3 resolution ${r.resolution}, ${fmt(r.occurrences?.presence_cells_at_res, 'int')} presence cells from ${fmt(r.occurrences?.records, 'int')} ${state.source === 'gbif' ? 'GBIF records' : `uploaded records (${escapeHtml(state.upload?.file || '')})`}.</p>
+            <p class="card-blurb">${escapeHtml(final)} model at H3 resolution ${r.resolution}, ${fmt(r.occurrences?.presence_cells_at_res, 'int')} presence cells from ${fmt(r.occurrences?.records, 'int')} ${escapeHtml(sourceLabel())}.</p>
             <div class="tiles">
                 ${tile('Cross-validated AUC', fmt(fAuc, 'num2'), 'presences vs background')}
-                ${tile('Suitable area', `${fmt(r.suitable_area_km2, 'compact')} km²`, '1981–2010 climate')}
+                ${tile('Suitable area', `${fmt(r.suitable_area_km2, 'compact')} km²`, baseLabel())}
                 ${tile('In protected areas or OECMs', '<span id="pa-current" class="skeleton">00%</span>', 'share of the modelled range')}
             </div>
             ${proj ? `<div class="tiles">
@@ -944,12 +1053,12 @@ async function readmeText(spec, r) {
         '## Model',
         '',
         `- Final model: ${r.final_model}, H3 resolution ${r.resolution}, mode ${r.mode}`,
-        `- Occurrences: ${r.occurrences?.records} ${state.source === 'gbif' ? 'GBIF records' : `uploaded records (${state.upload?.file || ''})`} in ${r.occurrences?.presence_cells_at_res} presence cells`,
+        `- Occurrences: ${r.occurrences?.records} ${sourceLabel()} in ${r.occurrences?.presence_cells_at_res} presence cells`,
         ...(state.iucn && state.iucnAgreement && !state.iucnAgreement.error ? [
             `- IUCN range (${state.iucn.sci_name}${state.iucn.cat ? `, Red List ${state.iucn.cat}` : ''}): ${(100 * state.iucnAgreement.both_cells / state.iucnAgreement.model_cells).toFixed(1)}% of the modelled range lies inside it; ${(100 * state.iucnAgreement.both_cells / state.iucnAgreement.iucn_cells).toFixed(1)}% of it (within the study area) is modelled suitable; AUC of suitability against it ${Number(state.iucnAgreement.auc).toFixed(3)}. The IUCN range itself is not included, under the IUCN terms of use.`] : []),
         `- Background: ${r.background_cells} cells${r.background_bias ? ` (${r.background_bias})` : ' (uniform)'}`,
         `- Range threshold: ${r.threshold?.rule} = ${r.threshold?.value}`,
-        `- Suitable area: ${r.suitable_area_km2} km² (1981–2010 climate)`,
+        `- Suitable area: ${r.suitable_area_km2} km² (${baseLabel()})`,
         ...(proj ? [`- ${scenarioLabel(proj.scenario)}: ${proj.suitable_area_km2} km² suitable, +${proj.gained_km2} / −${proj.lost_km2} km²; ${proj.cells_extrapolated} cells outside the training range`] : []),
         '',
         '| Model | AUC | TSS | Boyce |',
@@ -1058,7 +1167,7 @@ function renderProtected(share) {
 $('run').onclick = fit;
 // The record preview applies the same uncertainty and year filters as the fit.
 for (const id of ['max-unc', 'min-year']) $(id).addEventListener('change', () => {
-    if (state.source === 'gbif' && state.species) previewGbif(state.species.name);
+    if (searchSource() && state.species) previewGbif(state.species.name);
 });
 renderDomain();
 try {

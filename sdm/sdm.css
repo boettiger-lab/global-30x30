@@ -77,3 +77,7 @@ details.step[open] > summary::before { transform: rotate(90deg); }
 .land-warn { margin-top: 4px; font-size: 12px; color: #8a5a00; }
 .land-warn.err { color: var(--danger); font-weight: 600; }
 .adv-grid .span2 { grid-column: 1 / -1; flex-direction: row; }
+.realm-step { margin-bottom: -2px; }
+#realm-seg button { font-weight: 600; }
+.domain-opts label.depth { flex-basis: 100%; }
+.domain-opts input#depth-min, .domain-opts input#depth-max { width: 6em; }
