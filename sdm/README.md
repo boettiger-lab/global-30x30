@@ -6,7 +6,7 @@ The page calls MCP tools directly from the browser, one stateless JSON-RPC POST 
 
 | Server | Tools | Used for |
 |---|---|---|
-| `sdm-mcp` ([glen-sdm](https://boettiger-lab.github.io/glen-sdm/)) | `list_sdm_algorithms`, `list_covariate_layers` | the method and predictor menus and the future scenarios |
+| `sdm-mcp` ([hexsdm](https://schmidtdse.github.io/hexsdm/)) | `list_sdm_algorithms`, `list_covariate_layers` | the method and predictor menus and the future scenarios |
 | | `fit_sdm`, `get_sdm_result` | fitting, and waiting for long fits |
 | `duckdb-mcp` | `query` | checking species names against the GBIF 2026-09 snapshot index; previewing GBIF records; the IUCN range and its agreement with the model; the share of the modelled range in protected areas and OECMs |
 
