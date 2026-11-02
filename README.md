@@ -23,7 +23,7 @@ system-prompt.md    ← LLM system prompt (30×30 framing + caveats)
 k8s/                ← Kubernetes deployment manifests (optional)
 ```
 
-This is a fork of [`boettiger-lab/geo-agent-template`](https://github.com/boettiger-lab/geo-agent-template); the JavaScript runtime is loaded from CDN. See the [geo-agent docs](https://schmidtdse.github.io/glen/) for the full configuration reference.
+This is a fork of [`SchmidtDSE/glen-template`](https://github.com/SchmidtDSE/glen-template); the JavaScript runtime is loaded from CDN. See the [geo-agent docs](https://schmidtdse.github.io/glen/) for the full configuration reference.
 
 ## Local preview
 
