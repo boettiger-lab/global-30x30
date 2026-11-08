@@ -13,7 +13,7 @@ data:
   config.template.json: |
     {
         "mcp_server_url": "${MCP_SERVER_URL}",
-        "llm_model": "xiaomi/mimo-v2.6-flash",
+        "llm_model": "deepseek-v4-flash",
         "max_tokens": 16384,
         "transcription_model": {
             "value": "gemma-small",
@@ -22,50 +22,20 @@ data:
         },
         "llm_models": [
             {
-                "value": "xiaomi/mimo-v2.6-flash",
-                "label": "MiMo V2.6 Flash (OpenRouter)",
-                "endpoint": "/api/llm",
-                "api_key": "unused"
-            },
-            {
-                "value": "xiaomi/mimo-v2.6-pro",
-                "label": "MiMo V2.6 Pro (OpenRouter)",
-                "endpoint": "/api/llm",
-                "api_key": "unused"
-            },
-            {
-                "value": "z-ai/glm-5.2",
-                "label": "GLM-5.2 (OpenRouter)",
-                "endpoint": "/api/llm",
-                "api_key": "unused"
-            },
-            {
-                "value": "gemma",
-                "label": "NRP Gemma",
-                "endpoint": "/api/llm",
-                "api_key": "unused"
-            },
-            {
-                "value": "qwen",
-                "label": "DSE-nimbus",
-                "endpoint": "/api/llm",
-                "api_key": "unused"
-            },
-            {
-                "value": "deepseek/deepseek-v4.1-flash",
-                "label": "DeepSeek V4.1 Flash, 2026-09-10 (OpenRouter)",
-                "endpoint": "/api/llm",
-                "api_key": "unused"
-            },
-            {
-                "value": "deepseek/deepseek-v4-flash-vision-exp",
-                "label": "DeepSeek V4 Flash Vision, 2026-08-21 (OpenRouter)",
-                "endpoint": "/api/llm",
-                "api_key": "unused"
-            },
-            {
                 "value": "deepseek-v4-flash",
                 "label": "NRP DeepSeek V4 Flash",
+                "endpoint": "/api/llm",
+                "api_key": "unused"
+            },
+            {
+                "value": "glm-5",
+                "label": "NRP GLM-5.2",
+                "endpoint": "/api/llm",
+                "api_key": "unused"
+            },
+            {
+                "value": "kimi",
+                "label": "NRP Kimi",
                 "endpoint": "/api/llm",
                 "api_key": "unused"
             },
@@ -88,14 +58,20 @@ data:
                 "api_key": "unused"
             },
             {
-                "value": "kimi",
-                "label": "NRP Kimi K2.5",
+                "value": "minimax-m2",
+                "label": "NRP MiniMax M2",
                 "endpoint": "/api/llm",
                 "api_key": "unused"
             },
             {
-                "value": "minimax-m2",
-                "label": "NRP minimax-m2",
+                "value": "gemma",
+                "label": "NRP Gemma",
+                "endpoint": "/api/llm",
+                "api_key": "unused"
+            },
+            {
+                "value": "gemma-small",
+                "label": "NRP Gemma Small",
                 "endpoint": "/api/llm",
                 "api_key": "unused"
             }
@@ -159,11 +135,15 @@ data:
         # so both failure modes disappear. The Origin header still forwards by
         # default, so proxy logging/routing is unchanged. The service lives
         # only in the biodiversity namespace: ClusterIP open-llm-proxy:8002.
-        location /api/llm/ {
+        # Only two calls are relayed (glen-ops#246): POST chat/completions
+        # (chat and transcription) and GET models. Any other path or method
+        # under /api/llm/ is answered here and never reaches the proxy.
+        location = /api/llm/chat/completions {
+            limit_except POST { deny all; }
             proxy_set_header X-Real-IP $client_addr;
             limit_req zone=llm burst=30 nodelay;
             limit_conn addr 20;
-            proxy_pass http://open-llm-proxy.biodiversity.svc.cluster.local:8002/v1/;
+            proxy_pass http://open-llm-proxy.biodiversity.svc.cluster.local:8002/v1/chat/completions;
             proxy_set_header Authorization "Bearer ${PROXY_KEY}";
 
             # Allow long agent loops (multi-turn tool use)
@@ -172,6 +152,22 @@ data:
 
             # Don't buffer streaming responses
             proxy_buffering off;
+        }
+
+        location = /api/llm/models {
+            limit_except GET { deny all; }
+            proxy_set_header X-Real-IP $client_addr;
+            limit_req zone=llm burst=30 nodelay;
+            limit_conn addr 20;
+            proxy_pass http://open-llm-proxy.biodiversity.svc.cluster.local:8002/v1/models;
+            proxy_set_header Authorization "Bearer ${PROXY_KEY}";
+            proxy_read_timeout 600s;
+            proxy_send_timeout 600s;
+            proxy_buffering off;
+        }
+
+        location /api/llm/ {
+            return 404;
         }
 
         # Reverse proxy to the shared DuckDB MCP server. The server requires a
