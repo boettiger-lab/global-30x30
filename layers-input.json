@@ -227,7 +227,7 @@
         },
         {
             "collection_id": "wwf-ecoregions-2017",
-            "collection_url": "https://s3-west.nrp-nautilus.io/public-ecoregion/stac-collection.json",
+            "collection_url": "https://s3-west.nrp-nautilus.io/public-ecoregion/wwf-ecoregions-2017/stac-collection.json",
             "assets": [
                 {
                     "id": "ecoregion-pmtiles",
