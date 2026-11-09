@@ -1,5 +1,5 @@
 {
-    "sdm_url": "https://sdm-mcp.nrp-nautilus.io/mcp",
+    "sdm_url": "https://global-30x30.nrp-nautilus.io/api/sdm",
     "mcp_url": "https://global-30x30.nrp-nautilus.io/api/mcp",
     "view": { "center": [0, 20], "zoom": 1.6 },
     "protected_areas": [

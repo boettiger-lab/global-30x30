@@ -192,6 +192,24 @@ data:
             proxy_buffering off;
         }
 
+        # Reverse proxy to the hexsdm MCP server (sdm-mcp), which now requires a
+        # bearer token like geo-query. nginx attaches this app's token from
+        # ${SDM_AUTH_TOKEN} so the browser never holds it, and proxies the
+        # in-cluster Service rather than the public hostname (glen-ops#73).
+        # sdm-mcp's /results, /map and /tiles/hex links stay public and are
+        # fetched from it directly.
+        location /api/sdm {
+            proxy_set_header X-Real-IP $client_addr;
+            limit_req zone=mcp burst=120 nodelay;
+            proxy_pass http://sdm-mcp.biodiversity.svc.cluster.local:8000/mcp;
+            proxy_http_version 1.1;
+            proxy_set_header Connection "";
+            proxy_set_header Authorization "Bearer ${SDM_AUTH_TOKEN}";
+            proxy_read_timeout 600s;
+            proxy_send_timeout 600s;
+            proxy_buffering off;
+        }
+
         location / {
             try_files $uri $uri/ /index.html;
             add_header Cache-Control "no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0";
