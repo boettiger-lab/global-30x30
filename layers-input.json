@@ -4,7 +4,7 @@
     "mcp_url": "https://duckdb-mcp.nrp-nautilus.io/mcp",
     "mcp_servers": [
         { "url": "https://duckdb-mcp.nrp-nautilus.io/mcp" },
-        { "url": "https://sdm-mcp.nrp-nautilus.io/mcp", "optional": true }
+        { "url": "https://global-30x30.nrp-nautilus.io/api/sdm", "optional": true }
     ],
     "auto_approve": true,
     "draw_enabled": true,
