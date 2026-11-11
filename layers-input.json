@@ -72,22 +72,6 @@
                     "display_name": "Protected Areas (WDPA)",
                     "group": "Protected & Conserved Areas",
                     "visible": true,
-                    "default_style": {
-                        "fill-color": [
-                            "match",
-                            ["get", "IUCN_CAT"],
-                            ["Ia", "Ib", "II"], "#1b5e20",
-                            ["III", "IV"], "#43a047",
-                            ["V", "VI"], "#a5d6a7",
-                            "#bdbdbd"
-                        ],
-                        "fill-opacity": 0.55
-                    },
-                    "outline_style": {
-                        "line-color": "#1b5e20",
-                        "line-width": 0.4,
-                        "line-opacity": 0.7
-                    },
                     "tooltip_fields": [
                         "NAME_ENG",
                         "DESIG_ENG",
@@ -95,13 +79,6 @@
                         "STATUS",
                         "ISO3",
                         "GIS_AREA"
-                    ],
-                    "legend_type": "categorical",
-                    "legend_classes": [
-                        { "label": "Strict / Wilderness / National Park (IUCN Ia–II)", "color": "#1b5e20" },
-                        { "label": "Monument / Habitat mgmt (III–IV)", "color": "#43a047" },
-                        { "label": "Protected landscape / Sustainable use (V–VI)", "color": "#a5d6a7" },
-                        { "label": "Not reported / other", "color": "#bdbdbd" }
                     ]
                 }
             ]
@@ -115,15 +92,6 @@
                     "display_name": "OECMs (WD-OECM)",
                     "group": "Protected & Conserved Areas",
                     "visible": true,
-                    "default_style": {
-                        "fill-color": "#00838f",
-                        "fill-opacity": 0.55
-                    },
-                    "outline_style": {
-                        "line-color": "#004d54",
-                        "line-width": 0.4,
-                        "line-opacity": 0.7
-                    },
                     "tooltip_fields": [
                         "NAME_ENG",
                         "DESIG_ENG",
@@ -131,10 +99,6 @@
                         "STATUS",
                         "ISO3",
                         "GIS_AREA"
-                    ],
-                    "legend_type": "categorical",
-                    "legend_classes": [
-                        { "label": "OECM", "color": "#00838f" }
                     ]
                 }
             ]
@@ -148,15 +112,6 @@
                     "display_name": "Indigenous & Community Lands (LandMark)",
                     "group": "Indigenous & Community Lands",
                     "visible": false,
-                    "default_style": {
-                        "fill-color": "#ef6c00",
-                        "fill-opacity": 0.35
-                    },
-                    "outline_style": {
-                        "line-color": "#ef6c00",
-                        "line-width": 0.4,
-                        "line-opacity": 0.7
-                    },
                     "tooltip_fields": [
                         "name",
                         "identity",
@@ -176,15 +131,6 @@
                     "display_name": "ICCA Registry — Polygon Sites",
                     "group": "Indigenous & Community Lands",
                     "visible": false,
-                    "default_style": {
-                        "fill-color": "#7e3f8f",
-                        "fill-opacity": 0.45
-                    },
-                    "outline_style": {
-                        "line-color": "#3a1a45",
-                        "line-width": 0.6,
-                        "line-opacity": 0.8
-                    },
                     "tooltip_fields": [
                         "name_eng",
                         "iso3",
@@ -207,12 +153,6 @@
                     "group": "Indigenous & Community Lands",
                     "visible": false,
                     "layer_type": "circle",
-                    "default_style": {
-                        "circle-color": "#7e3f8f",
-                        "circle-radius": 4,
-                        "circle-stroke-color": "#ffffff",
-                        "circle-stroke-width": 1
-                    },
                     "tooltip_fields": [
                         "name_eng",
                         "iso3",
@@ -234,36 +174,11 @@
                     "display_name": "Terrestrial Ecoregions (WWF)",
                     "group": "Biodiversity Context",
                     "visible": false,
-                    "default_style": {
-                        "fill-color": [
-                            "match",
-                            ["get", "NNH_NAME"],
-                            "Half Protected", "#2e7d32",
-                            "Nature Could Reach Half Protected", "#9ccc65",
-                            "Nature Could Recover", "#fdd835",
-                            "Nature Imperiled", "#e53935",
-                            "#bdbdbd"
-                        ],
-                        "fill-opacity": 0.4
-                    },
-                    "outline_style": {
-                        "line-color": "#424242",
-                        "line-width": 0.3,
-                        "line-opacity": 0.5
-                    },
                     "tooltip_fields": [
                         "ECO_NAME",
                         "BIOME_NAME",
                         "REALM",
                         "NNH_NAME"
-                    ],
-                    "legend_type": "categorical",
-                    "legend_classes": [
-                        { "label": "Half Protected", "color": "#2e7d32" },
-                        { "label": "Nature Could Reach Half Protected", "color": "#9ccc65" },
-                        { "label": "Nature Could Recover", "color": "#fdd835" },
-                        { "label": "Nature Imperiled", "color": "#e53935" },
-                        { "label": "Other / unassessed", "color": "#bdbdbd" }
                     ]
                 }
             ]
@@ -539,15 +454,6 @@
                     "display_name": "Ramsar Wetlands (Intl. Importance)",
                     "group": "Ecosystems & Freshwater",
                     "visible": false,
-                    "default_style": {
-                        "fill-color": "#0277bd",
-                        "fill-opacity": 0.5
-                    },
-                    "outline_style": {
-                        "line-color": "#01466b",
-                        "line-width": 0.5,
-                        "line-opacity": 0.8
-                    },
                     "tooltip_fields": [
                         "Site name",
                         "Country",
@@ -567,15 +473,6 @@
                     "display_name": "Watersheds (HydroBASINS)",
                     "group": "Ecosystems & Freshwater",
                     "visible": false,
-                    "default_style": {
-                        "fill-color": "#0288d1",
-                        "fill-opacity": 0
-                    },
-                    "outline_style": {
-                        "line-color": "#0288d1",
-                        "line-width": 0.6,
-                        "line-opacity": 0.6
-                    },
                     "tooltip_fields": [
                         "HYBAS_ID",
                         "PFAF_ID",
@@ -600,16 +497,7 @@
                 {
                     "id": "countries-pmtiles",
                     "display_name": "Countries",
-                    "visible": false,
-                    "default_style": {
-                        "fill-color": "#6A1B9A",
-                        "fill-opacity": 0.03
-                    },
-                    "outline_style": {
-                        "line-color": "#6A1B9A",
-                        "line-width": 1.2,
-                        "line-opacity": 0.7
-                    }
+                    "visible": false
                 }
             ]
         },
@@ -621,16 +509,7 @@
                 {
                     "id": "regions-pmtiles",
                     "display_name": "Regions / States",
-                    "visible": false,
-                    "default_style": {
-                        "fill-color": "#6A1B9A",
-                        "fill-opacity": 0.03
-                    },
-                    "outline_style": {
-                        "line-color": "#6A1B9A",
-                        "line-width": 0.8,
-                        "line-opacity": 0.6
-                    }
+                    "visible": false
                 }
             ]
         }
