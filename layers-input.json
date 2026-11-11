@@ -208,8 +208,6 @@
                     "display_name": "Vulnerable Ecosystem Carbon (2024)",
                     "group": "Nature's Contributions to People",
                     "visible": false,
-                    "colormap": "ylorbr",
-                    "rescale": "0,300",
                     "legend_label": "Mg C / ha"
                 },
                 {
@@ -217,8 +215,6 @@
                     "display_name": "Irrecoverable Carbon (2024)",
                     "group": "Nature's Contributions to People",
                     "visible": false,
-                    "colormap": "reds",
-                    "rescale": "0,150",
                     "legend_label": "Mg C / ha"
                 }
             ]
@@ -232,9 +228,6 @@
                     "display_name": "Overall MSA — 2015 baseline",
                     "group": "Biodiversity Intactness (GLOBIO MSA)",
                     "visible": false,
-                    "colormap": "rdylgn",
-                    "rescale": "0,1",
-                    "nodata": -999,
                     "legend_label": "MSA (0 = degraded, 1 = intact)"
                 }
             ]
@@ -248,9 +241,6 @@
                     "display_name": "Overall MSA — 2050 Sustainability (SSP1×RCP2.6)",
                     "group": "Biodiversity Intactness (GLOBIO MSA)",
                     "visible": false,
-                    "colormap": "rdylgn",
-                    "rescale": "0,1",
-                    "nodata": -999,
                     "legend_label": "MSA (0 = degraded, 1 = intact)"
                 }
             ]
@@ -264,9 +254,6 @@
                     "display_name": "Overall MSA — 2050 Regional Rivalry (SSP3×RCP6.0)",
                     "group": "Biodiversity Intactness (GLOBIO MSA)",
                     "visible": false,
-                    "colormap": "rdylgn",
-                    "rescale": "0,1",
-                    "nodata": -999,
                     "legend_label": "MSA (0 = degraded, 1 = intact)"
                 }
             ]
@@ -280,9 +267,6 @@
                     "display_name": "Overall MSA — 2050 Fossil-fuelled (SSP5×RCP8.5)",
                     "group": "Biodiversity Intactness (GLOBIO MSA)",
                     "visible": false,
-                    "colormap": "rdylgn",
-                    "rescale": "0,1",
-                    "nodata": -999,
                     "legend_label": "MSA (0 = degraded, 1 = intact)"
                 }
             ]
@@ -296,9 +280,6 @@
                     "display_name": "Plants MSA — 2015 baseline",
                     "group": "Biodiversity Intactness (GLOBIO MSA)",
                     "visible": false,
-                    "colormap": "rdylgn",
-                    "rescale": "0,1",
-                    "nodata": -999,
                     "legend_label": "MSA (0 = degraded, 1 = intact)"
                 }
             ]
@@ -312,9 +293,6 @@
                     "display_name": "Plants MSA — 2050 Sustainability (SSP1×RCP2.6)",
                     "group": "Biodiversity Intactness (GLOBIO MSA)",
                     "visible": false,
-                    "colormap": "rdylgn",
-                    "rescale": "0,1",
-                    "nodata": -999,
                     "legend_label": "MSA (0 = degraded, 1 = intact)"
                 }
             ]
@@ -328,9 +306,6 @@
                     "display_name": "Plants MSA — 2050 Regional Rivalry (SSP3×RCP6.0)",
                     "group": "Biodiversity Intactness (GLOBIO MSA)",
                     "visible": false,
-                    "colormap": "rdylgn",
-                    "rescale": "0,1",
-                    "nodata": -999,
                     "legend_label": "MSA (0 = degraded, 1 = intact)"
                 }
             ]
@@ -344,9 +319,6 @@
                     "display_name": "Plants MSA — 2050 Fossil-fuelled (SSP5×RCP8.5)",
                     "group": "Biodiversity Intactness (GLOBIO MSA)",
                     "visible": false,
-                    "colormap": "rdylgn",
-                    "rescale": "0,1",
-                    "nodata": -999,
                     "legend_label": "MSA (0 = degraded, 1 = intact)"
                 }
             ]
@@ -360,9 +332,6 @@
                     "display_name": "Warm-blooded Vertebrates MSA — 2015 baseline",
                     "group": "Biodiversity Intactness (GLOBIO MSA)",
                     "visible": false,
-                    "colormap": "rdylgn",
-                    "rescale": "0,1",
-                    "nodata": -999,
                     "legend_label": "MSA (0 = degraded, 1 = intact)"
                 }
             ]
@@ -376,9 +345,6 @@
                     "display_name": "Warm-blooded Vertebrates MSA — 2050 Sustainability (SSP1×RCP2.6)",
                     "group": "Biodiversity Intactness (GLOBIO MSA)",
                     "visible": false,
-                    "colormap": "rdylgn",
-                    "rescale": "0,1",
-                    "nodata": -999,
                     "legend_label": "MSA (0 = degraded, 1 = intact)"
                 }
             ]
@@ -392,9 +358,6 @@
                     "display_name": "Warm-blooded Vertebrates MSA — 2050 Regional Rivalry (SSP3×RCP6.0)",
                     "group": "Biodiversity Intactness (GLOBIO MSA)",
                     "visible": false,
-                    "colormap": "rdylgn",
-                    "rescale": "0,1",
-                    "nodata": -999,
                     "legend_label": "MSA (0 = degraded, 1 = intact)"
                 }
             ]
@@ -408,9 +371,6 @@
                     "display_name": "Warm-blooded Vertebrates MSA — 2050 Fossil-fuelled (SSP5×RCP8.5)",
                     "group": "Biodiversity Intactness (GLOBIO MSA)",
                     "visible": false,
-                    "colormap": "rdylgn",
-                    "rescale": "0,1",
-                    "nodata": -999,
                     "legend_label": "MSA (0 = degraded, 1 = intact)"
                 }
             ]
@@ -424,9 +384,6 @@
                     "display_name": "Population Density (GHS-POP 2020)",
                     "group": "Population",
                     "visible": false,
-                    "colormap": "magma",
-                    "rescale": "0,200",
-                    "nodata": 0,
                     "legend_label": "people per 90m cell"
                 }
             ]
@@ -440,7 +397,6 @@
                     "display_name": "Land Cover (Copernicus 100m, 2019)",
                     "group": "Ecosystems & Freshwater",
                     "visible": false,
-                    "legend_type": "categorical",
                     "legend_label": "FAO LCCS class"
                 }
             ]
