@@ -14,7 +14,6 @@ data:
     {
         "mcp_server_url": "${MCP_SERVER_URL}",
         "llm_model": "deepseek-v4-flash",
-        "max_tokens": 16384,
         "transcription_model": {
             "value": "gemma-small",
             "endpoint": "/api/llm",
