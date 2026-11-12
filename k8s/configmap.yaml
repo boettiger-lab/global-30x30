@@ -191,17 +191,21 @@ data:
             proxy_buffering off;
         }
 
-        # Reverse proxy to the hexsdm MCP server (sdm-mcp), which now requires a
+        # Reverse proxy to the hexsdm MCP server (sdm-mcp), which requires a
         # bearer token like geo-query. nginx attaches this app's token from
-        # ${SDM_AUTH_TOKEN} so the browser never holds it, and proxies the
-        # in-cluster Service rather than the public hostname (glen-ops#73).
-        # sdm-mcp's /results, /map and /tiles/hex links stay public and are
-        # fetched from it directly.
+        # ${SDM_AUTH_TOKEN} so the browser never holds it.
+        # The NRP sdm-mcp is unreachable from this app, so this goes to the
+        # hexsdm deployment on Carl's cluster (cirrus), as /api/mcp does for
+        # DuckDB. It reads the MinIO mirror of the same public data; result
+        # files are public on minio.carlboettiger.info (30-day scratch) and its
+        # /map links on sdm-mcp.carlboettiger.info.
         location /api/sdm {
             proxy_set_header X-Real-IP $client_addr;
             limit_req zone=mcp burst=120 nodelay;
-            proxy_pass http://sdm-mcp.biodiversity.svc.cluster.local:8000/mcp;
+            proxy_pass https://sdm-mcp.carlboettiger.info/mcp;
+            proxy_ssl_server_name on;
             proxy_http_version 1.1;
+            proxy_set_header Host sdm-mcp.carlboettiger.info;
             proxy_set_header Connection "";
             proxy_set_header Authorization "Bearer ${SDM_AUTH_TOKEN}";
             proxy_read_timeout 600s;

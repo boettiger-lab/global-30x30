@@ -57,13 +57,13 @@ spec:
             secretKeyRef:
               name: duckdb-mcp-mirror-auth
               key: MCP_AUTH_TOKEN
-        # This app's key in the hexsdm server's token Secret; nginx attaches it
-        # on /api/sdm.
+        # This app's token for the hexsdm server on cirrus (its global-30x30 key
+        # in mcp/sdm-mcp-tokens there); nginx attaches it on /api/sdm.
         - name: SDM_AUTH_TOKEN
           valueFrom:
             secretKeyRef:
-              name: sdm-mcp-tokens
-              key: global-30x30
+              name: sdm-mcp-mirror-auth
+              key: SDM_AUTH_TOKEN
         - name: LLM_ENDPOINT
           value: "https://open-llm-proxy.nrp-nautilus.io/v1"
         - name: PROXY_KEY
