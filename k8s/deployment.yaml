@@ -59,6 +59,11 @@ spec:
               key: MCP_AUTH_TOKEN
         # This app's token for the hexsdm server on cirrus (its global-30x30 key
         # in mcp/sdm-mcp-tokens there); nginx attaches it on /api/sdm.
+        # Copy it with no trailing newline, which would break the header:
+        #   kubectl --context <cirrus> -n mcp get secret sdm-mcp-tokens \
+        #     -o jsonpath='{.data.global-30x30}' | base64 -d | tr -d '\r\n' \
+        #   | kubectl --context <nrp> -n biodiversity create secret generic \
+        #     sdm-mcp-mirror-auth --from-file=SDM_AUTH_TOKEN=/dev/stdin
         - name: SDM_AUTH_TOKEN
           valueFrom:
             secretKeyRef:

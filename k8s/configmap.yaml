@@ -118,7 +118,7 @@ data:
         # ── Reverse proxy to open-llm-proxy ──────────────────────────
         # Clients POST to /api/llm/chat/completions with a dummy bearer
         # token; nginx rewrites the Authorization header using the
-        # ${PROXY_KEY} substituted in at container startup. The browser
+        # PROXY_KEY substituted in at container startup. The browser
         # never receives the key.
         #
         # In-cluster upstream (geo-agent-ops#73): proxy the open-llm-proxy
@@ -169,8 +169,12 @@ data:
             return 404;
         }
 
+        # Comments in this template name the variables without a dollar sign:
+        # envsubst would substitute them here too, and a token with a trailing
+        # newline would then split the comment and stop nginx from starting.
+        #
         # Reverse proxy to the shared DuckDB MCP server. The server requires a
-        # bearer token (geo-query#453); nginx attaches it from ${MCP_AUTH_TOKEN}
+        # bearer token (geo-query#453); nginx attaches it from MCP_AUTH_TOKEN
         # so the browser never holds it, and proxies the in-cluster Service
         # rather than the public hostname (glen-ops#73).
         # TEMPORARY (glen-ops, 2026-11-09): NRP's incident-mcp-deny-ingress
@@ -193,7 +197,7 @@ data:
 
         # Reverse proxy to the hexsdm MCP server (sdm-mcp), which requires a
         # bearer token like geo-query. nginx attaches this app's token from
-        # ${SDM_AUTH_TOKEN} so the browser never holds it.
+        # SDM_AUTH_TOKEN so the browser never holds it.
         # The NRP sdm-mcp is unreachable from this app, so this goes to the
         # hexsdm deployment on Carl's cluster (cirrus), as /api/mcp does for
         # DuckDB. It reads the MinIO mirror of the same public data; result
