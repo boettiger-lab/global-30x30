@@ -14,8 +14,8 @@
  * opening the link refits, which returns the cached result at once.
  */
 
-import { McpQueryClient } from 'https://cdn.jsdelivr.net/gh/SchmidtDSE/glen-charts@v0.2.1/core/mcp.js';
-import { fmt, escapeHtml } from 'https://cdn.jsdelivr.net/gh/SchmidtDSE/glen-charts@v0.2.1/core/format.js';
+import { McpQueryClient } from 'https://cdn.jsdelivr.net/gh/SchmidtDSE/glen-charts@v0.16.1/core/mcp.js';
+import { fmt, escapeHtml } from 'https://cdn.jsdelivr.net/gh/SchmidtDSE/glen-charts@v0.16.1/core/format.js';
 
 const GBIF_INDEX = 's3://public-gbif/2026-09/species-h0-index.parquet';
 const VIRIDIS = ['#440154', '#3b528b', '#21918c', '#5ec962', '#fde725'];
