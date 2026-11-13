@@ -184,8 +184,8 @@
             ]
         },
         {
-            "collection_id": "ncp-biodiversity",
-            "collection_url": "https://s3-west.nrp-nautilus.io/public-ncp/stac-collection.json",
+            "collection_id": "ncp-biodiversity-indicators",
+            "collection_url": "https://s3-west.nrp-nautilus.io/public-ncp/biodiversity-indicators/stac-collection.json",
             "assets": [
                 {
                     "id": "ncp-biod-nathab-cog",
