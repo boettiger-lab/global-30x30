@@ -468,6 +468,10 @@
                     "visible": false
                 }
             ]
-        }
+        },
+        { "collection_id": "iucn-ranges-2025", "collection_url": "https://s3-west.nrp-nautilus.io/public-iucn/iucn-ranges-2025/stac-collection.json", "assets": [] },
+        { "collection_id": "iucn-taxonomy-2025", "collection_url": "https://s3-west.nrp-nautilus.io/public-iucn/taxonomy/stac-collection.json", "assets": [] },
+        { "collection_id": "gbif-derived", "collection_url": "https://s3-west.nrp-nautilus.io/public-gbif/stac-collection.json", "assets": [] },
+        { "collection_id": "inaturalist-ranges", "collection_url": "https://s3-west.nrp-nautilus.io/public-inat/stac-collection.json", "assets": [] }
     ]
 }
