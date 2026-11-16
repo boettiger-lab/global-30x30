@@ -4,19 +4,20 @@ inland water, marine and coastal areas be effectively conserved by 2030 (the 30�
 target). Typical questions concern current coverage by the world, a region or a
 country; people living in or near protected areas; overlap with Indigenous and
 community lands; the biodiversity, carbon and other contributions of nature inside and
-outside the network; and the gap between today's 17.2% and 30%.
+outside the network; and the gap between today's coverage and 30%.
 
 ## Datasets
 
 - **WDPA**, the World Database on Protected Areas (June 2026 edition, collection
-  `wdpa`). Several protected areas can overlap one H3 cell: count features with
-  `COUNT(DISTINCT _cng_fid)` and area with `COUNT(DISTINCT h8)`. For a country
-  breakdown, its `ISO3` column is faster than a spatial join to the Overture boundaries.
+  `wdpa`). Its catalog record says how to measure coverage and join it to other
+  layers; follow it. For a country breakdown, its `ISO3` column is faster than a
+  spatial join to the Overture boundaries. WDPA records Ramsar sites itself, as the
+  designation `DESIG_ENG` = 'Wetland of International Importance (Ramsar Site)'
+  (`DESIG_TYPE` 'International'), so a question about Ramsar sites as protected areas
+  is answered from WDPA.
 - **WD-OECM** (`wdoecm-may-2026`), Other Effective Area-Based Conservation Measures
   (UNEP-WCMC, May 2026, 7,378 polygons). Target 3 counts the union of WDPA and WD-OECM,
-  so any "currently conserved" or 30×30 figure includes OECMs. The schema and hex
-  resolution match WDPA: union the two hex assets and count each `h8` once. The
-  headline global 17.2% is protected areas plus OECMs; WDPA alone is lower.
+  so any "currently conserved" or 30×30 figure includes OECMs.
 - **ICCA Registry**, Indigenous and Community Conserved Areas registered with UNEP-WCMC
   and the ICCA Consortium: 292 sites in 23 countries in this snapshot, split into
   `icca-registry-polygon` (30 mapped boundaries) and `icca-registry-point` (262 points
@@ -58,21 +59,22 @@ outside the network; and the gap between today's 17.2% and 30%.
 - **Copernicus Global Land Cover** (`cgls-lc100-2019`, 100 m, FAO LCCS classes), a
   categorical raster with an H3 hex at resolution 9 whose `lc_class` is the mode for
   the cell. Never sum or average it.
-- **Ramsar Wetlands** (`wetlands-ramsar`), wetlands of international importance.
-  Overlapping boundaries duplicate hex rows, so take distinct `h8` before joining.
+- **Ramsar Wetlands** (`wetlands-ramsar`), the Ramsar Convention's own list of
+  wetlands of international importance (2,551 sites), separate from the Ramsar
+  designations in WDPA. Use it for the Ramsar list itself, and WDPA for Ramsar sites as
+  protected areas. Overlapping boundaries duplicate hex rows.
 - **HydroBASINS v1c** (`hydrobasins-v1c`), watershed boundaries at levels 1–12; level 3
   is the map layer.
 - **Overture countries and regions**, for country and state breakdowns.
 
 ## Coverage and population
 
-WDPA and WD-OECM include marine areas, so a raw count of conserved `h8` cells covers
-ocean too. Land coverage uses `cgls-lc100-2019` as a land mask: a cell is land when
-`lc_class NOT IN (0, 80, 200)` (no data, permanent water, open sea). The share of land
-conserved is conserved land cells divided by land cells, which gives about 17.5%
-against the paper's 17.2% for protected areas plus OECMs. Spatial joins between WDPA
-and other layers use the resolution-8 hex on `h8`, with both sides restricted by `h0`
-first.
+WDPA and WD-OECM include marine areas, so land coverage needs a land mask:
+`cgls-lc100-2019`, where a cell is land unless its `lc_class` is 0, 80 or 200 (no
+data, permanent water, open sea). Fajardo et al. 2026 report 17.2% of land in
+protected areas plus OECMs. That is the paper's figure from its own data and method,
+not a check on a query: a method is right when it follows the catalog, whether or not
+it lands on 17.2%.
 
 ## Data this app does not have
 
