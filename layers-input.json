@@ -1,477 +1,529 @@
 {
-    "catalog": "https://s3-west.nrp-nautilus.io/public-data/stac/catalog.json",
-    "titiler_url": "https://titiler.nrp-nautilus.io",
-    "mcp_url": "https://duckdb-mcp.nrp-nautilus.io/mcp",
-    "mcp_servers": [
-        { "url": "https://duckdb-mcp.nrp-nautilus.io/mcp" },
-        { "url": "https://global-30x30.nrp-nautilus.io/api/sdm", "optional": true }
+  "catalog": "https://s3-west.nrp-nautilus.io/public-data/stac/catalog.json",
+  "titiler_url": "https://titiler.nrp-nautilus.io",
+  "auto_approve": true,
+  "geocoder": {
+    "provider": "nominatim",
+    "search_box": false
+  },
+  "sidebar": {
+    "enabled": true
+  },
+  "view": {
+    "center": [
+      0,
+      10
     ],
-    "auto_approve": true,
-    "draw_enabled": true,
-    "upload_enabled": true,
-    "geocoder": {
-        "provider": "nominatim",
-        "search_box": false
+    "zoom": 2
+  },
+  "llm": {
+    "user_provided": true,
+    "transcription_model": {
+      "value": "gemma"
     },
-    "sidebar": {
-        "enabled": true
-    },
-    "view": {
-        "center": [
-            0,
-            10
-        ],
-        "zoom": 2
-    },
-    "llm": {
-        "user_provided": true,
-        "transcription_model": { "value": "gemma" },
-        "default_endpoint": "https://openrouter.ai/api/v1",
-        "models": [
-            {
-                "value": "anthropic/claude-sonnet-5",
-                "label": "Claude Sonnet 5"
-            },
-            {
-                "value": "qwen/qwen3-235b-a22b",
-                "label": "Qwen3 235B"
-            },
-            {
-                "value": "moonshotai/kimi-k2",
-                "label": "Kimi K2"
-            },
-            {
-                "value": "google/gemini-2.5-flash",
-                "label": "Gemini Flash"
-            }
-        ]
-    },
-    "welcome": {
-        "message": "Hi! I can help you explore the spatial and social context of the Kunming-Montreal 30×30 target (Target 3 of the Global Biodiversity Framework). Try asking:",
-        "examples": [
-            "What percentage of global land is currently inside a designated protected area?",
-            "How many people live inside existing protected areas?",
-            "Show me protected areas in the Amazon and overlay Indigenous and community lands.",
-            "Which ecoregions are least represented in the current protected-area network?",
-            "Show me species richness for mammals and identify the top 5 protected areas by mean richness.",
-            "Model the habitat suitability of the Iberian lynx under current and 2050 SSP5-8.5 climate and show it with protected areas."
-        ]
-    },
-    "links": {
-        "github": "https://github.com/boettiger-lab/global-30x30",
-        "docs": "/docs.html",
-        "carbon": true
-    },
-    "collections": [
-        {
-            "collection_id": "wdpa",
-            "collection_url": "https://s3-west.nrp-nautilus.io/public-wdpa/wdpa/stac-collection.json",
-            "assets": [
-                {
-                    "id": "wdpa-pmtiles",
-                    "display_name": "Protected Areas (WDPA)",
-                    "group": "Protected & Conserved Areas",
-                    "visible": true,
-                    "tooltip_fields": [
-                        "NAME_ENG",
-                        "DESIG_ENG",
-                        "IUCN_CAT",
-                        "STATUS",
-                        "ISO3",
-                        "GIS_AREA"
-                    ]
-                }
-            ]
-        },
-        {
-            "collection_id": "wdoecm-may-2026",
-            "collection_url": "https://s3-west.nrp-nautilus.io/public-wdpa/wdoecm-may-2026/stac-collection.json",
-            "assets": [
-                {
-                    "id": "wdoecm-pmtiles",
-                    "display_name": "OECMs (WD-OECM)",
-                    "group": "Protected & Conserved Areas",
-                    "visible": true,
-                    "tooltip_fields": [
-                        "NAME_ENG",
-                        "DESIG_ENG",
-                        "IUCN_CAT",
-                        "STATUS",
-                        "ISO3",
-                        "GIS_AREA"
-                    ]
-                }
-            ]
-        },
-        {
-            "collection_id": "landmark-iplc-poly",
-            "collection_url": "https://s3-west.nrp-nautilus.io/public-indigenous/landmark/iplc-poly-stac.json",
-            "assets": [
-                {
-                    "id": "iplc-poly-pmtiles",
-                    "display_name": "Indigenous & Community Lands (LandMark)",
-                    "group": "Indigenous & Community Lands",
-                    "visible": false,
-                    "tooltip_fields": [
-                        "name",
-                        "identity",
-                        "country",
-                        "category",
-                        "form_rec"
-                    ]
-                }
-            ]
-        },
-        {
-            "collection_id": "icca-registry-polygon",
-            "collection_url": "https://s3-west.nrp-nautilus.io/public-icca/icca-registry/icca-polygon/stac-collection.json",
-            "assets": [
-                {
-                    "id": "icca-polygon-pmtiles",
-                    "display_name": "ICCA Registry — Polygon Sites",
-                    "group": "Indigenous & Community Lands",
-                    "visible": false,
-                    "tooltip_fields": [
-                        "name_eng",
-                        "iso3",
-                        "gov_type",
-                        "owner_type",
-                        "desig_eng",
-                        "realm",
-                        "comm_name"
-                    ]
-                }
-            ]
-        },
-        {
-            "collection_id": "icca-registry-point",
-            "collection_url": "https://s3-west.nrp-nautilus.io/public-icca/icca-registry/icca-point/stac-collection.json",
-            "assets": [
-                {
-                    "id": "icca-point-pmtiles",
-                    "display_name": "ICCA Registry — Point Sites",
-                    "group": "Indigenous & Community Lands",
-                    "visible": false,
-                    "layer_type": "circle",
-                    "tooltip_fields": [
-                        "name_eng",
-                        "iso3",
-                        "gov_type",
-                        "owner_type",
-                        "desig_eng",
-                        "realm",
-                        "comm_name"
-                    ]
-                }
-            ]
-        },
-        {
-            "collection_id": "wwf-ecoregions-2017",
-            "collection_url": "https://s3-west.nrp-nautilus.io/public-ecoregion/wwf-ecoregions-2017/stac-collection.json",
-            "assets": [
-                {
-                    "id": "ecoregion-pmtiles",
-                    "display_name": "Terrestrial Ecoregions (WWF)",
-                    "group": "Biodiversity Context",
-                    "visible": false,
-                    "tooltip_fields": [
-                        "ECO_NAME",
-                        "BIOME_NAME",
-                        "REALM",
-                        "NNH_NAME"
-                    ]
-                }
-            ]
-        },
-        {
-            "collection_id": "ncp-biodiversity-indicators",
-            "collection_url": "https://s3-west.nrp-nautilus.io/public-ncp/biodiversity-indicators/stac-collection.json",
-            "assets": [
-                {
-                    "id": "ncp-biod-nathab-cog",
-                    "display_name": "NCP — Biodiversity & Natural Habitat (Chaplin-Kramer 2019)",
-                    "group": "Nature's Contributions to People",
-                    "visible": false,
-                    "colormap": "greens",
-                    "rescale": "0,20",
-                    "nodata": -9999,
-                    "legend_label": "composite index"
-                }
-            ]
-        },
-        {
-            "collection_id": "irrecoverable-carbon",
-            "collection_url": "https://s3-west.nrp-nautilus.io/public-carbon/stac-collection.json",
-            "assets": [
-                {
-                    "id": "v2-vulnerable-2024-cog",
-                    "display_name": "Vulnerable Ecosystem Carbon (2024)",
-                    "group": "Nature's Contributions to People",
-                    "visible": false,
-                    "legend_label": "Mg C / ha"
-                },
-                {
-                    "id": "v2-irrecoverable-2024-cog",
-                    "display_name": "Irrecoverable Carbon (2024)",
-                    "group": "Nature's Contributions to People",
-                    "visible": false,
-                    "legend_label": "Mg C / ha"
-                }
-            ]
-        },
-        {
-            "collection_id": "globio-msa-2015-overall",
-            "collection_url": "https://s3-west.nrp-nautilus.io/public-globio/globio-msa-2015-overall/stac-collection.json",
-            "assets": [
-                {
-                    "id": "globio-msa-2015-overall-cog",
-                    "display_name": "Overall MSA — 2015 baseline",
-                    "group": "Biodiversity Intactness (GLOBIO MSA)",
-                    "visible": false,
-                    "legend_label": "MSA (0 = degraded, 1 = intact)"
-                }
-            ]
-        },
-        {
-            "collection_id": "globio-msa-ssp1rcp26-2050-overall",
-            "collection_url": "https://s3-west.nrp-nautilus.io/public-globio/globio-msa-ssp1rcp26-2050-overall/stac-collection.json",
-            "assets": [
-                {
-                    "id": "globio-msa-ssp1rcp26-2050-overall-cog",
-                    "display_name": "Overall MSA — 2050 Sustainability (SSP1×RCP2.6)",
-                    "group": "Biodiversity Intactness (GLOBIO MSA)",
-                    "visible": false,
-                    "legend_label": "MSA (0 = degraded, 1 = intact)"
-                }
-            ]
-        },
-        {
-            "collection_id": "globio-msa-ssp3rcp60-2050-overall",
-            "collection_url": "https://s3-west.nrp-nautilus.io/public-globio/globio-msa-ssp3rcp60-2050-overall/stac-collection.json",
-            "assets": [
-                {
-                    "id": "globio-msa-ssp3rcp60-2050-overall-cog",
-                    "display_name": "Overall MSA — 2050 Regional Rivalry (SSP3×RCP6.0)",
-                    "group": "Biodiversity Intactness (GLOBIO MSA)",
-                    "visible": false,
-                    "legend_label": "MSA (0 = degraded, 1 = intact)"
-                }
-            ]
-        },
-        {
-            "collection_id": "globio-msa-ssp5rcp85-2050-overall",
-            "collection_url": "https://s3-west.nrp-nautilus.io/public-globio/globio-msa-ssp5rcp85-2050-overall/stac-collection.json",
-            "assets": [
-                {
-                    "id": "globio-msa-ssp5rcp85-2050-overall-cog",
-                    "display_name": "Overall MSA — 2050 Fossil-fuelled (SSP5×RCP8.5)",
-                    "group": "Biodiversity Intactness (GLOBIO MSA)",
-                    "visible": false,
-                    "legend_label": "MSA (0 = degraded, 1 = intact)"
-                }
-            ]
-        },
-        {
-            "collection_id": "globio-msa-2015-plants",
-            "collection_url": "https://s3-west.nrp-nautilus.io/public-globio/globio-msa-2015-plants/stac-collection.json",
-            "assets": [
-                {
-                    "id": "globio-msa-2015-plants-cog",
-                    "display_name": "Plants MSA — 2015 baseline",
-                    "group": "Biodiversity Intactness (GLOBIO MSA)",
-                    "visible": false,
-                    "legend_label": "MSA (0 = degraded, 1 = intact)"
-                }
-            ]
-        },
-        {
-            "collection_id": "globio-msa-ssp1rcp26-2050-plants",
-            "collection_url": "https://s3-west.nrp-nautilus.io/public-globio/globio-msa-ssp1rcp26-2050-plants/stac-collection.json",
-            "assets": [
-                {
-                    "id": "globio-msa-ssp1rcp26-2050-plants-cog",
-                    "display_name": "Plants MSA — 2050 Sustainability (SSP1×RCP2.6)",
-                    "group": "Biodiversity Intactness (GLOBIO MSA)",
-                    "visible": false,
-                    "legend_label": "MSA (0 = degraded, 1 = intact)"
-                }
-            ]
-        },
-        {
-            "collection_id": "globio-msa-ssp3rcp60-2050-plants",
-            "collection_url": "https://s3-west.nrp-nautilus.io/public-globio/globio-msa-ssp3rcp60-2050-plants/stac-collection.json",
-            "assets": [
-                {
-                    "id": "globio-msa-ssp3rcp60-2050-plants-cog",
-                    "display_name": "Plants MSA — 2050 Regional Rivalry (SSP3×RCP6.0)",
-                    "group": "Biodiversity Intactness (GLOBIO MSA)",
-                    "visible": false,
-                    "legend_label": "MSA (0 = degraded, 1 = intact)"
-                }
-            ]
-        },
-        {
-            "collection_id": "globio-msa-ssp5rcp85-2050-plants",
-            "collection_url": "https://s3-west.nrp-nautilus.io/public-globio/globio-msa-ssp5rcp85-2050-plants/stac-collection.json",
-            "assets": [
-                {
-                    "id": "globio-msa-ssp5rcp85-2050-plants-cog",
-                    "display_name": "Plants MSA — 2050 Fossil-fuelled (SSP5×RCP8.5)",
-                    "group": "Biodiversity Intactness (GLOBIO MSA)",
-                    "visible": false,
-                    "legend_label": "MSA (0 = degraded, 1 = intact)"
-                }
-            ]
-        },
-        {
-            "collection_id": "globio-msa-2015-wbvert",
-            "collection_url": "https://s3-west.nrp-nautilus.io/public-globio/globio-msa-2015-wbvert/stac-collection.json",
-            "assets": [
-                {
-                    "id": "globio-msa-2015-wbvert-cog",
-                    "display_name": "Warm-blooded Vertebrates MSA — 2015 baseline",
-                    "group": "Biodiversity Intactness (GLOBIO MSA)",
-                    "visible": false,
-                    "legend_label": "MSA (0 = degraded, 1 = intact)"
-                }
-            ]
-        },
-        {
-            "collection_id": "globio-msa-ssp1rcp26-2050-wbvert",
-            "collection_url": "https://s3-west.nrp-nautilus.io/public-globio/globio-msa-ssp1rcp26-2050-wbvert/stac-collection.json",
-            "assets": [
-                {
-                    "id": "globio-msa-ssp1rcp26-2050-wbvert-cog",
-                    "display_name": "Warm-blooded Vertebrates MSA — 2050 Sustainability (SSP1×RCP2.6)",
-                    "group": "Biodiversity Intactness (GLOBIO MSA)",
-                    "visible": false,
-                    "legend_label": "MSA (0 = degraded, 1 = intact)"
-                }
-            ]
-        },
-        {
-            "collection_id": "globio-msa-ssp3rcp60-2050-wbvert",
-            "collection_url": "https://s3-west.nrp-nautilus.io/public-globio/globio-msa-ssp3rcp60-2050-wbvert/stac-collection.json",
-            "assets": [
-                {
-                    "id": "globio-msa-ssp3rcp60-2050-wbvert-cog",
-                    "display_name": "Warm-blooded Vertebrates MSA — 2050 Regional Rivalry (SSP3×RCP6.0)",
-                    "group": "Biodiversity Intactness (GLOBIO MSA)",
-                    "visible": false,
-                    "legend_label": "MSA (0 = degraded, 1 = intact)"
-                }
-            ]
-        },
-        {
-            "collection_id": "globio-msa-ssp5rcp85-2050-wbvert",
-            "collection_url": "https://s3-west.nrp-nautilus.io/public-globio/globio-msa-ssp5rcp85-2050-wbvert/stac-collection.json",
-            "assets": [
-                {
-                    "id": "globio-msa-ssp5rcp85-2050-wbvert-cog",
-                    "display_name": "Warm-blooded Vertebrates MSA — 2050 Fossil-fuelled (SSP5×RCP8.5)",
-                    "group": "Biodiversity Intactness (GLOBIO MSA)",
-                    "visible": false,
-                    "legend_label": "MSA (0 = degraded, 1 = intact)"
-                }
-            ]
-        },
-        {
-            "collection_id": "ghs-pop-2020",
-            "collection_url": "https://s3-west.nrp-nautilus.io/public-population/ghs-pop-2020/stac-collection.json",
-            "assets": [
-                {
-                    "id": "ghs-pop-2020-cog",
-                    "display_name": "Population Density (GHS-POP 2020)",
-                    "group": "Population",
-                    "visible": false,
-                    "legend_label": "people per 90m cell"
-                }
-            ]
-        },
-        {
-            "collection_id": "cgls-lc100-2019",
-            "collection_url": "https://s3-west.nrp-nautilus.io/public-land-cover/cgls-lc100-2019/stac-collection.json",
-            "assets": [
-                {
-                    "id": "cgls-lc100-2019-cog",
-                    "display_name": "Land Cover (Copernicus 100m, 2019)",
-                    "group": "Ecosystems & Freshwater",
-                    "visible": false,
-                    "legend_label": "FAO LCCS class"
-                }
-            ]
-        },
-        {
-            "collection_id": "wetlands-ramsar",
-            "collection_url": "https://s3-west.nrp-nautilus.io/public-wetlands/ramsar/stac-collection.json",
-            "assets": [
-                {
-                    "id": "ramsar-pmtiles",
-                    "display_name": "Ramsar Wetlands (Intl. Importance)",
-                    "group": "Ecosystems & Freshwater",
-                    "visible": false,
-                    "tooltip_fields": [
-                        "Site name",
-                        "Country",
-                        "Wetland Type",
-                        "Area (ha)",
-                        "Designation date"
-                    ]
-                }
-            ]
-        },
-        {
-            "collection_id": "hydrobasins-v1c",
-            "collection_url": "https://s3-west.nrp-nautilus.io/public-hydrobasins/stac-collection.json",
-            "assets": [
-                {
-                    "id": "unified-pmtiles",
-                    "display_name": "Watersheds (HydroBASINS)",
-                    "group": "Ecosystems & Freshwater",
-                    "visible": false,
-                    "tooltip_fields": [
-                        "HYBAS_ID",
-                        "PFAF_ID",
-                        "UP_AREA",
-                        "SUB_AREA"
-                    ],
-                    "versions": [
-                        { "label": "L3 – Major Basins", "asset_id": "level-03-pmtiles" },
-                        { "label": "L4", "asset_id": "level-04-pmtiles" },
-                        { "label": "L5", "asset_id": "level-05-pmtiles" },
-                        { "label": "L6 – Sub-catchments", "asset_id": "unified-pmtiles" }
-                    ],
-                    "default_version": "L6 – Sub-catchments"
-                }
-            ]
-        },
-        {
-            "collection_id": "overture-divisions-countries-2026-02-18",
-            "collection_url": "https://s3-west.nrp-nautilus.io/public-overturemaps/2026-02-18.0/countries/stac-collection.json",
-            "group": { "name": "Administrative Boundaries", "collapsed": true },
-            "assets": [
-                {
-                    "id": "countries-pmtiles",
-                    "display_name": "Countries",
-                    "visible": false
-                }
-            ]
-        },
-        {
-            "collection_id": "overture-divisions-regions-2026-02-18",
-            "collection_url": "https://s3-west.nrp-nautilus.io/public-overturemaps/2026-02-18.0/regions/stac-collection.json",
-            "group": { "name": "Administrative Boundaries", "collapsed": true },
-            "assets": [
-                {
-                    "id": "regions-pmtiles",
-                    "display_name": "Regions / States",
-                    "visible": false
-                }
-            ]
-        },
-        { "collection_id": "iucn-ranges-2025", "collection_url": "https://s3-west.nrp-nautilus.io/public-iucn/iucn-ranges-2025/stac-collection.json", "assets": [] },
-        { "collection_id": "iucn-taxonomy-2025", "collection_url": "https://s3-west.nrp-nautilus.io/public-iucn/taxonomy/stac-collection.json", "assets": [] },
-        { "collection_id": "gbif-derived", "collection_url": "https://s3-west.nrp-nautilus.io/public-gbif/stac-collection.json", "assets": [] },
-        { "collection_id": "inaturalist-ranges", "collection_url": "https://s3-west.nrp-nautilus.io/public-inat/stac-collection.json", "assets": [] }
+    "default_endpoint": "https://openrouter.ai/api/v1",
+    "models": [
+      {
+        "value": "anthropic/claude-sonnet-5",
+        "label": "Claude Sonnet 5"
+      },
+      {
+        "value": "qwen/qwen3-235b-a22b",
+        "label": "Qwen3 235B"
+      },
+      {
+        "value": "moonshotai/kimi-k2",
+        "label": "Kimi K2"
+      },
+      {
+        "value": "google/gemini-2.5-flash",
+        "label": "Gemini Flash"
+      }
     ]
+  },
+  "welcome": {
+    "message": "Hi! I can help you explore the spatial and social context of the Kunming-Montreal 30×30 target (Target 3 of the Global Biodiversity Framework). Try asking:",
+    "examples": [
+      "What percentage of global land is currently inside a designated protected area?",
+      "How many people live inside existing protected areas?",
+      "Show me protected areas in the Amazon and overlay Indigenous and community lands.",
+      "Which ecoregions are least represented in the current protected-area network?",
+      "Show me species richness for mammals and identify the top 5 protected areas by mean richness.",
+      "Model the habitat suitability of the Iberian lynx under current and 2050 SSP5-8.5 climate and show it with protected areas."
+    ]
+  },
+  "links": {
+    "github": "https://github.com/boettiger-lab/global-30x30",
+    "docs": "/docs.html",
+    "carbon": true
+  },
+  "collections": [
+    {
+      "collection_id": "wdpa",
+      "collection_url": "https://s3-west.nrp-nautilus.io/public-wdpa/wdpa/stac-collection.json",
+      "assets": [
+        {
+          "id": "wdpa-pmtiles",
+          "display_name": "Protected Areas (WDPA)",
+          "group": "Protected & Conserved Areas",
+          "visible": true,
+          "tooltip_fields": [
+            "NAME_ENG",
+            "DESIG_ENG",
+            "IUCN_CAT",
+            "STATUS",
+            "ISO3",
+            "GIS_AREA"
+          ]
+        }
+      ]
+    },
+    {
+      "collection_id": "wdoecm-may-2026",
+      "collection_url": "https://s3-west.nrp-nautilus.io/public-wdpa/wdoecm-may-2026/stac-collection.json",
+      "assets": [
+        {
+          "id": "wdoecm-pmtiles",
+          "display_name": "OECMs (WD-OECM)",
+          "group": "Protected & Conserved Areas",
+          "visible": true,
+          "tooltip_fields": [
+            "NAME_ENG",
+            "DESIG_ENG",
+            "IUCN_CAT",
+            "STATUS",
+            "ISO3",
+            "GIS_AREA"
+          ]
+        }
+      ]
+    },
+    {
+      "collection_id": "landmark-iplc-poly",
+      "collection_url": "https://s3-west.nrp-nautilus.io/public-indigenous/landmark/iplc-poly-stac.json",
+      "assets": [
+        {
+          "id": "iplc-poly-pmtiles",
+          "display_name": "Indigenous & Community Lands (LandMark)",
+          "group": "Indigenous & Community Lands",
+          "visible": false,
+          "tooltip_fields": [
+            "name",
+            "identity",
+            "country",
+            "category",
+            "form_rec"
+          ]
+        }
+      ]
+    },
+    {
+      "collection_id": "icca-registry-polygon",
+      "collection_url": "https://s3-west.nrp-nautilus.io/public-icca/icca-registry/icca-polygon/stac-collection.json",
+      "assets": [
+        {
+          "id": "icca-polygon-pmtiles",
+          "display_name": "ICCA Registry — Polygon Sites",
+          "group": "Indigenous & Community Lands",
+          "visible": false,
+          "tooltip_fields": [
+            "name_eng",
+            "iso3",
+            "gov_type",
+            "owner_type",
+            "desig_eng",
+            "realm",
+            "comm_name"
+          ]
+        }
+      ]
+    },
+    {
+      "collection_id": "icca-registry-point",
+      "collection_url": "https://s3-west.nrp-nautilus.io/public-icca/icca-registry/icca-point/stac-collection.json",
+      "assets": [
+        {
+          "id": "icca-point-pmtiles",
+          "display_name": "ICCA Registry — Point Sites",
+          "group": "Indigenous & Community Lands",
+          "visible": false,
+          "layer_type": "circle",
+          "tooltip_fields": [
+            "name_eng",
+            "iso3",
+            "gov_type",
+            "owner_type",
+            "desig_eng",
+            "realm",
+            "comm_name"
+          ]
+        }
+      ]
+    },
+    {
+      "collection_id": "wwf-ecoregions-2017",
+      "collection_url": "https://s3-west.nrp-nautilus.io/public-ecoregion/wwf-ecoregions-2017/stac-collection.json",
+      "assets": [
+        {
+          "id": "ecoregion-pmtiles",
+          "display_name": "Terrestrial Ecoregions (WWF)",
+          "group": "Biodiversity Context",
+          "visible": false,
+          "tooltip_fields": [
+            "ECO_NAME",
+            "BIOME_NAME",
+            "REALM",
+            "NNH_NAME"
+          ]
+        }
+      ]
+    },
+    {
+      "collection_id": "ncp-biodiversity-indicators",
+      "collection_url": "https://s3-west.nrp-nautilus.io/public-ncp/biodiversity-indicators/stac-collection.json",
+      "assets": [
+        {
+          "id": "ncp-biod-nathab-cog",
+          "display_name": "NCP — Biodiversity & Natural Habitat (Chaplin-Kramer 2019)",
+          "group": "Nature's Contributions to People",
+          "visible": false,
+          "colormap": "greens",
+          "rescale": "0,20",
+          "nodata": -9999,
+          "legend_label": "composite index"
+        }
+      ]
+    },
+    {
+      "collection_id": "irrecoverable-carbon",
+      "collection_url": "https://s3-west.nrp-nautilus.io/public-carbon/stac-collection.json",
+      "assets": [
+        {
+          "id": "v2-vulnerable-2024-cog",
+          "display_name": "Vulnerable Ecosystem Carbon (2024)",
+          "group": "Nature's Contributions to People",
+          "visible": false,
+          "legend_label": "Mg C / ha"
+        },
+        {
+          "id": "v2-irrecoverable-2024-cog",
+          "display_name": "Irrecoverable Carbon (2024)",
+          "group": "Nature's Contributions to People",
+          "visible": false,
+          "legend_label": "Mg C / ha"
+        }
+      ]
+    },
+    {
+      "collection_id": "globio-msa-2015-overall",
+      "collection_url": "https://s3-west.nrp-nautilus.io/public-globio/globio-msa-2015-overall/stac-collection.json",
+      "assets": [
+        {
+          "id": "globio-msa-2015-overall-cog",
+          "display_name": "Overall MSA — 2015 baseline",
+          "group": "Biodiversity Intactness (GLOBIO MSA)",
+          "visible": false,
+          "legend_label": "MSA (0 = degraded, 1 = intact)"
+        }
+      ]
+    },
+    {
+      "collection_id": "globio-msa-ssp1rcp26-2050-overall",
+      "collection_url": "https://s3-west.nrp-nautilus.io/public-globio/globio-msa-ssp1rcp26-2050-overall/stac-collection.json",
+      "assets": [
+        {
+          "id": "globio-msa-ssp1rcp26-2050-overall-cog",
+          "display_name": "Overall MSA — 2050 Sustainability (SSP1×RCP2.6)",
+          "group": "Biodiversity Intactness (GLOBIO MSA)",
+          "visible": false,
+          "legend_label": "MSA (0 = degraded, 1 = intact)"
+        }
+      ]
+    },
+    {
+      "collection_id": "globio-msa-ssp3rcp60-2050-overall",
+      "collection_url": "https://s3-west.nrp-nautilus.io/public-globio/globio-msa-ssp3rcp60-2050-overall/stac-collection.json",
+      "assets": [
+        {
+          "id": "globio-msa-ssp3rcp60-2050-overall-cog",
+          "display_name": "Overall MSA — 2050 Regional Rivalry (SSP3×RCP6.0)",
+          "group": "Biodiversity Intactness (GLOBIO MSA)",
+          "visible": false,
+          "legend_label": "MSA (0 = degraded, 1 = intact)"
+        }
+      ]
+    },
+    {
+      "collection_id": "globio-msa-ssp5rcp85-2050-overall",
+      "collection_url": "https://s3-west.nrp-nautilus.io/public-globio/globio-msa-ssp5rcp85-2050-overall/stac-collection.json",
+      "assets": [
+        {
+          "id": "globio-msa-ssp5rcp85-2050-overall-cog",
+          "display_name": "Overall MSA — 2050 Fossil-fuelled (SSP5×RCP8.5)",
+          "group": "Biodiversity Intactness (GLOBIO MSA)",
+          "visible": false,
+          "legend_label": "MSA (0 = degraded, 1 = intact)"
+        }
+      ]
+    },
+    {
+      "collection_id": "globio-msa-2015-plants",
+      "collection_url": "https://s3-west.nrp-nautilus.io/public-globio/globio-msa-2015-plants/stac-collection.json",
+      "assets": [
+        {
+          "id": "globio-msa-2015-plants-cog",
+          "display_name": "Plants MSA — 2015 baseline",
+          "group": "Biodiversity Intactness (GLOBIO MSA)",
+          "visible": false,
+          "legend_label": "MSA (0 = degraded, 1 = intact)"
+        }
+      ]
+    },
+    {
+      "collection_id": "globio-msa-ssp1rcp26-2050-plants",
+      "collection_url": "https://s3-west.nrp-nautilus.io/public-globio/globio-msa-ssp1rcp26-2050-plants/stac-collection.json",
+      "assets": [
+        {
+          "id": "globio-msa-ssp1rcp26-2050-plants-cog",
+          "display_name": "Plants MSA — 2050 Sustainability (SSP1×RCP2.6)",
+          "group": "Biodiversity Intactness (GLOBIO MSA)",
+          "visible": false,
+          "legend_label": "MSA (0 = degraded, 1 = intact)"
+        }
+      ]
+    },
+    {
+      "collection_id": "globio-msa-ssp3rcp60-2050-plants",
+      "collection_url": "https://s3-west.nrp-nautilus.io/public-globio/globio-msa-ssp3rcp60-2050-plants/stac-collection.json",
+      "assets": [
+        {
+          "id": "globio-msa-ssp3rcp60-2050-plants-cog",
+          "display_name": "Plants MSA — 2050 Regional Rivalry (SSP3×RCP6.0)",
+          "group": "Biodiversity Intactness (GLOBIO MSA)",
+          "visible": false,
+          "legend_label": "MSA (0 = degraded, 1 = intact)"
+        }
+      ]
+    },
+    {
+      "collection_id": "globio-msa-ssp5rcp85-2050-plants",
+      "collection_url": "https://s3-west.nrp-nautilus.io/public-globio/globio-msa-ssp5rcp85-2050-plants/stac-collection.json",
+      "assets": [
+        {
+          "id": "globio-msa-ssp5rcp85-2050-plants-cog",
+          "display_name": "Plants MSA — 2050 Fossil-fuelled (SSP5×RCP8.5)",
+          "group": "Biodiversity Intactness (GLOBIO MSA)",
+          "visible": false,
+          "legend_label": "MSA (0 = degraded, 1 = intact)"
+        }
+      ]
+    },
+    {
+      "collection_id": "globio-msa-2015-wbvert",
+      "collection_url": "https://s3-west.nrp-nautilus.io/public-globio/globio-msa-2015-wbvert/stac-collection.json",
+      "assets": [
+        {
+          "id": "globio-msa-2015-wbvert-cog",
+          "display_name": "Warm-blooded Vertebrates MSA — 2015 baseline",
+          "group": "Biodiversity Intactness (GLOBIO MSA)",
+          "visible": false,
+          "legend_label": "MSA (0 = degraded, 1 = intact)"
+        }
+      ]
+    },
+    {
+      "collection_id": "globio-msa-ssp1rcp26-2050-wbvert",
+      "collection_url": "https://s3-west.nrp-nautilus.io/public-globio/globio-msa-ssp1rcp26-2050-wbvert/stac-collection.json",
+      "assets": [
+        {
+          "id": "globio-msa-ssp1rcp26-2050-wbvert-cog",
+          "display_name": "Warm-blooded Vertebrates MSA — 2050 Sustainability (SSP1×RCP2.6)",
+          "group": "Biodiversity Intactness (GLOBIO MSA)",
+          "visible": false,
+          "legend_label": "MSA (0 = degraded, 1 = intact)"
+        }
+      ]
+    },
+    {
+      "collection_id": "globio-msa-ssp3rcp60-2050-wbvert",
+      "collection_url": "https://s3-west.nrp-nautilus.io/public-globio/globio-msa-ssp3rcp60-2050-wbvert/stac-collection.json",
+      "assets": [
+        {
+          "id": "globio-msa-ssp3rcp60-2050-wbvert-cog",
+          "display_name": "Warm-blooded Vertebrates MSA — 2050 Regional Rivalry (SSP3×RCP6.0)",
+          "group": "Biodiversity Intactness (GLOBIO MSA)",
+          "visible": false,
+          "legend_label": "MSA (0 = degraded, 1 = intact)"
+        }
+      ]
+    },
+    {
+      "collection_id": "globio-msa-ssp5rcp85-2050-wbvert",
+      "collection_url": "https://s3-west.nrp-nautilus.io/public-globio/globio-msa-ssp5rcp85-2050-wbvert/stac-collection.json",
+      "assets": [
+        {
+          "id": "globio-msa-ssp5rcp85-2050-wbvert-cog",
+          "display_name": "Warm-blooded Vertebrates MSA — 2050 Fossil-fuelled (SSP5×RCP8.5)",
+          "group": "Biodiversity Intactness (GLOBIO MSA)",
+          "visible": false,
+          "legend_label": "MSA (0 = degraded, 1 = intact)"
+        }
+      ]
+    },
+    {
+      "collection_id": "ghs-pop-2020",
+      "collection_url": "https://s3-west.nrp-nautilus.io/public-population/ghs-pop-2020/stac-collection.json",
+      "assets": [
+        {
+          "id": "ghs-pop-2020-cog",
+          "display_name": "Population Density (GHS-POP 2020)",
+          "group": "Population",
+          "visible": false,
+          "legend_label": "people per 90m cell"
+        }
+      ]
+    },
+    {
+      "collection_id": "cgls-lc100-2019",
+      "collection_url": "https://s3-west.nrp-nautilus.io/public-land-cover/cgls-lc100-2019/stac-collection.json",
+      "assets": [
+        {
+          "id": "cgls-lc100-2019-cog",
+          "display_name": "Land Cover (Copernicus 100m, 2019)",
+          "group": "Ecosystems & Freshwater",
+          "visible": false,
+          "legend_label": "FAO LCCS class"
+        }
+      ]
+    },
+    {
+      "collection_id": "wetlands-ramsar",
+      "collection_url": "https://s3-west.nrp-nautilus.io/public-wetlands/ramsar/stac-collection.json",
+      "assets": [
+        {
+          "id": "ramsar-pmtiles",
+          "display_name": "Ramsar Wetlands (Intl. Importance)",
+          "group": "Ecosystems & Freshwater",
+          "visible": false,
+          "tooltip_fields": [
+            "Site name",
+            "Country",
+            "Wetland Type",
+            "Area (ha)",
+            "Designation date"
+          ]
+        }
+      ]
+    },
+    {
+      "collection_id": "hydrobasins-v1c",
+      "collection_url": "https://s3-west.nrp-nautilus.io/public-hydrobasins/stac-collection.json",
+      "assets": [
+        {
+          "id": "unified-pmtiles",
+          "display_name": "Watersheds (HydroBASINS)",
+          "group": "Ecosystems & Freshwater",
+          "visible": false,
+          "tooltip_fields": [
+            "HYBAS_ID",
+            "PFAF_ID",
+            "UP_AREA",
+            "SUB_AREA"
+          ],
+          "versions": [
+            {
+              "label": "L3 – Major Basins",
+              "asset_id": "level-03-pmtiles"
+            },
+            {
+              "label": "L4",
+              "asset_id": "level-04-pmtiles"
+            },
+            {
+              "label": "L5",
+              "asset_id": "level-05-pmtiles"
+            },
+            {
+              "label": "L6 – Sub-catchments",
+              "asset_id": "unified-pmtiles"
+            }
+          ],
+          "default_version": "L6 – Sub-catchments"
+        }
+      ]
+    },
+    {
+      "collection_id": "overture-divisions-countries-2026-02-18",
+      "collection_url": "https://s3-west.nrp-nautilus.io/public-overturemaps/2026-02-18.0/countries/stac-collection.json",
+      "group": {
+        "name": "Administrative Boundaries",
+        "collapsed": true
+      },
+      "assets": [
+        {
+          "id": "countries-pmtiles",
+          "display_name": "Countries",
+          "visible": false
+        }
+      ]
+    },
+    {
+      "collection_id": "overture-divisions-regions-2026-02-18",
+      "collection_url": "https://s3-west.nrp-nautilus.io/public-overturemaps/2026-02-18.0/regions/stac-collection.json",
+      "group": {
+        "name": "Administrative Boundaries",
+        "collapsed": true
+      },
+      "assets": [
+        {
+          "id": "regions-pmtiles",
+          "display_name": "Regions / States",
+          "visible": false
+        }
+      ]
+    },
+    {
+      "collection_id": "iucn-ranges-2025",
+      "collection_url": "https://s3-west.nrp-nautilus.io/public-iucn/iucn-ranges-2025/stac-collection.json",
+      "assets": []
+    },
+    {
+      "collection_id": "iucn-taxonomy-2025",
+      "collection_url": "https://s3-west.nrp-nautilus.io/public-iucn/taxonomy/stac-collection.json",
+      "assets": []
+    },
+    {
+      "collection_id": "gbif-derived",
+      "collection_url": "https://s3-west.nrp-nautilus.io/public-gbif/stac-collection.json",
+      "assets": []
+    },
+    {
+      "collection_id": "inaturalist-ranges",
+      "collection_url": "https://s3-west.nrp-nautilus.io/public-inat/stac-collection.json",
+      "assets": []
+    }
+  ],
+  "plugins": [
+    {
+      "url": "https://cdn.jsdelivr.net/gh/SchmidtDSE/glen@v4.0.0/core/plugins/mcp.js",
+      "options": {
+        "servers": [
+          {
+            "url": "https://duckdb-mcp.nrp-nautilus.io/mcp",
+            "prompt": "geospatial-analyst"
+          },
+          {
+            "url": "https://global-30x30.nrp-nautilus.io/api/sdm",
+            "optional": true
+          }
+        ]
+      }
+    },
+    "https://cdn.jsdelivr.net/gh/SchmidtDSE/glen@v4.0.0/core/plugins/hex.js",
+    "https://cdn.jsdelivr.net/gh/SchmidtDSE/glen@v4.0.0/core/plugins/draw.js",
+    {
+      "url": "https://cdn.jsdelivr.net/gh/SchmidtDSE/glen@v4.0.0/core/plugins/uploads.js",
+      "options": {}
+    }
+  ]
 }
