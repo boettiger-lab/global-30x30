@@ -71,10 +71,7 @@ outside the network; and the gap between today's coverage and 30%.
 
 WDPA and WD-OECM include marine areas, so land coverage needs a land mask:
 `cgls-lc100-2019`, where a cell is land unless its `lc_class` is 0, 80 or 200 (no
-data, permanent water, open sea). Fajardo et al. 2026 report 17.2% of land in
-protected areas plus OECMs. That is the paper's figure from its own data and method,
-not a check on a query: a method is right when it follows the catalog, whether or not
-it lands on 17.2%.
+data, permanent water, open sea).
 
 ## Data this app does not have
 
