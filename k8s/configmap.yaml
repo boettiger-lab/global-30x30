@@ -203,9 +203,9 @@ data:
         # SDM_AUTH_TOKEN so the browser never holds it.
         # The NRP sdm-mcp is unreachable from this app, so this goes to the
         # hexsdm deployment on Carl's cluster (cirrus), as /api/mcp does for
-        # DuckDB. It reads the MinIO mirror of the same public data; result
-        # files are public on minio.carlboettiger.info (30-day scratch) and its
-        # /map links on sdm-mcp.carlboettiger.info.
+        # DuckDB. It reads the copy of the same public data on the office
+        # mirror, s3.carlboettiger.info; result files are public there
+        # (30-day scratch) and its /map links on sdm-mcp.carlboettiger.info.
         location /api/sdm {
             proxy_set_header X-Real-IP $client_addr;
             limit_req zone=mcp burst=120 nodelay;
