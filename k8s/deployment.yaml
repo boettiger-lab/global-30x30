@@ -55,20 +55,15 @@ spec:
         - name: MCP_AUTH_TOKEN
           valueFrom:
             secretKeyRef:
-              name: duckdb-mcp-mirror-auth
+              name: duckdb-mcp-auth
               key: MCP_AUTH_TOKEN
-        # This app's token for the hexsdm server on cirrus (its global-30x30 key
-        # in mcp/sdm-mcp-tokens there); nginx attaches it on /api/sdm.
-        # Copy it with no trailing newline, which would break the header:
-        #   kubectl --context <cirrus> -n mcp get secret sdm-mcp-tokens \
-        #     -o jsonpath='{.data.global-30x30}' | base64 -d | tr -d '\r\n' \
-        #   | kubectl --context <nrp> -n biodiversity create secret generic \
-        #     sdm-mcp-mirror-auth --from-file=SDM_AUTH_TOKEN=/dev/stdin
+        # This app's key in the hexsdm server's token Secret; nginx attaches it
+        # on /api/sdm.
         - name: SDM_AUTH_TOKEN
           valueFrom:
             secretKeyRef:
-              name: sdm-mcp-mirror-auth
-              key: SDM_AUTH_TOKEN
+              name: sdm-mcp-tokens
+              key: global-30x30
         - name: LLM_ENDPOINT
           value: "https://open-llm-proxy.nrp-nautilus.io/v1"
         - name: PROXY_KEY
