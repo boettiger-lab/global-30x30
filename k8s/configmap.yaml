@@ -179,17 +179,18 @@ data:
         # bearer token (geo-query#453); nginx attaches it from MCP_AUTH_TOKEN
         # so the browser never holds it, and proxies the in-cluster Service
         # rather than the public hostname (glen-ops#73).
-        # TEMPORARY (glen-ops, 2026-11-09): NRP's incident-mcp-deny-ingress
-        # NetworkPolicy blocks every in-cluster DuckDB MCP server, so this goes to
-        # Carl's mirror off NRP, which serves the same public data. Switch back to
-        # the in-cluster Service and the duckdb-mcp-auth Secret once NRP lifts it.
         location /api/mcp {
             proxy_set_header X-Real-IP $client_addr;
             limit_req zone=mcp burst=120 nodelay;
-            proxy_pass https://duckdb-mcp.carlboettiger.info/mcp;
-            proxy_ssl_server_name on;
+            proxy_pass http://mcp-server-duckdb.biodiversity.svc.cluster.local:8000/mcp;
+            # Tile links name the server's public host, which is gone; send the
+            # browser to this app's /tiles/ instead.
+            proxy_set_header Accept-Encoding "";
+            sub_filter 'https://duckdb-mcp.nrp-nautilus.io/tiles/' 'https://$host/tiles/';
+            sub_filter_once off;
+            sub_filter_types text/event-stream application/json;
             proxy_http_version 1.1;
-            proxy_set_header Host duckdb-mcp.carlboettiger.info;
+            proxy_set_header Host duckdb-mcp.nrp-nautilus.io;
             proxy_set_header Connection "";
             proxy_set_header Authorization "Bearer ${MCP_AUTH_TOKEN}";
             proxy_set_header X-Glen-App "global-30x30";
@@ -198,21 +199,27 @@ data:
             proxy_buffering off;
         }
 
+        # Hex tiles from the same server (public there; MCP_AUTH_PUBLIC_TILES).
+        location /tiles/ {
+            limit_except GET { deny all; }
+            proxy_pass http://mcp-server-duckdb.biodiversity.svc.cluster.local:8000/tiles/;
+            proxy_http_version 1.1;
+            proxy_set_header Host duckdb-mcp.nrp-nautilus.io;
+            proxy_set_header Connection "";
+            proxy_set_header X-Real-IP $client_addr;
+            proxy_set_header X-Glen-App "global-30x30";
+        }
+
         # Reverse proxy to the hexsdm MCP server (sdm-mcp), which requires a
         # bearer token like geo-query. nginx attaches this app's token from
         # SDM_AUTH_TOKEN so the browser never holds it.
-        # The NRP sdm-mcp is unreachable from this app, so this goes to the
-        # hexsdm deployment on Carl's cluster (cirrus), as /api/mcp does for
-        # DuckDB. It reads the copy of the same public data on the office
-        # mirror, s3.carlboettiger.info; result files are public there
-        # (30-day scratch) and its /map links on sdm-mcp.carlboettiger.info.
+        # Proxies the in-cluster Service. Result files and map layers are
+        # public on s3-west public-output (30-day scratch).
         location /api/sdm {
             proxy_set_header X-Real-IP $client_addr;
             limit_req zone=mcp burst=120 nodelay;
-            proxy_pass https://sdm-mcp.carlboettiger.info/mcp;
-            proxy_ssl_server_name on;
+            proxy_pass http://sdm-mcp.biodiversity.svc.cluster.local:8000/mcp;
             proxy_http_version 1.1;
-            proxy_set_header Host sdm-mcp.carlboettiger.info;
             proxy_set_header Connection "";
             proxy_set_header Authorization "Bearer ${SDM_AUTH_TOKEN}";
             proxy_set_header X-Glen-App "global-30x30";
