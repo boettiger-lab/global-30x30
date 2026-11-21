@@ -57,3 +57,16 @@ that lost canopy in each year from 2001 to 2025, from any cause, without regrowt
 Because one is cover-weighted and the other counts whole pixels, loss is reported as a
 share of land area (of the range, its protected part and the rest), not of tree cover.
 The producers improved their method from 2011 on, which the chart marks.
+
+The Projection tab measures climate exposure after Trisos et al. (2020), with CHELSA 2.1
+bioclimate on H3 resolution 8. The species' realized thermal limit is the warmest
+1981–2010 mean annual temperature in its range; a range cell is exposed in a period when
+its projected mean annual temperature exceeds that limit. The tab gives the exposed
+share of the range for 2011–2040, 2041–2070 and 2071–2100 under the scenario chosen in
+the Climate scenario setting (SSP1-2.6, SSP3-7.0 or SSP5-8.5), as the median of the five
+CMIP6 models with their range, together with median warming and precipitation change,
+and maps the exposed cells for a chosen period. Exposure is heat beyond the conditions
+the species occupies now, not certain loss: the realized limit understates tolerance
+for small ranges, and the measure leaves out habitat, land use and dispersal. The
+catalogue has no future land-use layers, so the tab does not project habitat change as
+Map of Life does.

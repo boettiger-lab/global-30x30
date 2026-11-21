@@ -35,7 +35,16 @@ const PATHS = {
     habitatMap: 's3://public-iucn/lumbierres-habitat-2021/fractions/hex/h0=*/data_0.parquet',
     crosswalk: 's3://public-iucn/lumbierres-habitat-2021/crosswalk.parquet',
     dem: 's3://public-dem/copernicus-glo90/hex/h0=*/data_0.parquet',
+    climate: 's3://public-bioclimate/chelsa-2-1/{period}/hex/h0=*/data_0.parquet',
 };
+
+const SCENARIOS = {
+    ssp126: 'SSP1-2.6, low emissions',
+    ssp370: 'SSP3-7.0, high emissions',
+    ssp585: 'SSP5-8.5, very high emissions',
+};
+const PERIODS = ['2011-2040', '2041-2070', '2071-2100'];
+const MODELS = ['gfdl_esm4', 'ipsl_cm6a_lr', 'mpi_esm1_2_hr', 'mri_esm2_0', 'ukesm1_0_ll'];
 
 const GBIF_FILTER = `NOT list_has_any(issue, ['ZERO_COORDINATE', 'COORDINATE_INVALID', 'COORDINATE_OUT_OF_RANGE', 'COUNTRY_COORDINATE_MISMATCH'])
       AND coalesce(occurrencestatus, 'PRESENT') <> 'ABSENT'
@@ -56,10 +65,11 @@ const CATEGORIES = {
     DD: ['Data Deficient', '#d1d1c6', '#1a1a1a'],
 };
 
-const COLORS = { range: '#7cb342', rangeLine: '#33691e', occ: '#7b4fc9', strict: '#e8a33d', other: '#5b8cc0', oecm: '#4db6ac', none: '#e6e6e0', loss: '#a0522d', aoh: '#1b5e20' };
+const COLORS = { range: '#7cb342', rangeLine: '#33691e', occ: '#7b4fc9', strict: '#e8a33d', other: '#5b8cc0', oecm: '#4db6ac', none: '#e6e6e0', loss: '#a0522d', aoh: '#1b5e20', exposed: '#c62828' };
 const RANGE_LAYER = 'iucn-range';
 const PA_LAYER = 'protected-in-range';
 const AOH_LAYER = 'area-of-habitat';
+const EXPOSURE_LAYER = 'climate-exposure';
 const OCC_LAYER = 'gbif-records';
 // Protected cells drawn on the map: the finest H3 resolution that keeps the range under this many cells.
 const PA_MAX_CELLS = 25000;
@@ -101,10 +111,12 @@ const plugin = {
         const mm = ctx.map;
         const ml = mm.map;
 
-        const state = { taxon: null, stats: null, occ: null, wiki: null, photo: null, habitat: null, aoh: null };
+        const state = { taxon: null, stats: null, occ: null, wiki: null, photo: null, habitat: null, aoh: null, proj: null, projPeriod: 1 };
         const taxa = new Map();   // id → taxonomy row
         const seq = { info: 0, range: 0, occ: 0, stats: 0, habitat: 0 };
         let habitatKey = null, habitatJob = null;
+        let projKey = null, projJob = null;
+        seq.proj = 0;
 
         /* ── Queries ─────────────────────────────────────────────────── */
 
@@ -288,6 +300,46 @@ const plugin = {
             return row || null;
         }
 
+        /**
+         * Climate exposure (after Trisos et al. 2020): the species' realized thermal
+         * limit is the warmest 1981-2010 mean annual temperature in its range, and a
+         * range cell is exposed in a period when its projected mean annual temperature
+         * exceeds that limit. CHELSA 2.1 on H3 resolution 8, for each of the five
+         * climate models and their median, for one scenario and its three periods.
+         */
+        async function projection(id, presence, ssp) {
+            if (!SCENARIOS[ssp]) throw new Error(`unknown scenario ${ssp}`);
+            const clim = period => paths.climate.replace('{period}', period);
+            const inRange = `h0 IN (SELECT h0 FROM h0s) AND h3_cell_to_parent(h8, (SELECT r FROM nr)) IN (SELECT cell FROM rng)`;
+            const fut = PERIODS.map((per, i) => `
+                    SELECT ${i} AS p, h8, bio1_median AS m, ${MODELS.map((g, k) => `bio1_${g} AS g${k}`).join(', ')}, bio12_median AS pr
+                    FROM read_parquet('${clim(`${ssp}-${per}`)}', hive_partitioning = true) WHERE ${inRange}`).join('\n                    UNION ALL');
+            const over = col => `avg((${col} > (SELECT t FROM lim))::INT)`;
+            const [row] = await db.query(`
+                WITH ${rangeSrc(id, presence)},
+                nr AS (SELECT CASE WHEN min(native_res) >= 8 THEN 8 WHEN min(native_res) >= 6 THEN 6 ELSE 5 END AS r FROM src),
+                rng AS (SELECT DISTINCT CASE (SELECT r FROM nr) WHEN 8 THEN h8 WHEN 6 THEN h6 ELSE h5 END AS cell FROM src),
+                b AS (SELECT h8, bio1 AS t0, bio12 AS p0 FROM read_parquet('${clim('baseline-1981-2010')}', hive_partitioning = true) WHERE ${inRange}),
+                lim AS (SELECT max(t0) AS t FROM b),
+                f AS (${fut}),
+                j AS (SELECT f.*, b.t0, b.p0 FROM f JOIN b USING (h8)),
+                per AS (SELECT p, avg(m - t0) AS warming, sum(pr) / nullif(sum(p0), 0) - 1 AS precip, ${over('m')} AS exposed,
+                               [${MODELS.map((g, k) => over(`g${k}`)).join(', ')}] AS models
+                        FROM j GROUP BY p),
+                dr AS (SELECT CASE WHEN n <= ${PA_MAX_CELLS} THEN 8 WHEN n <= ${PA_MAX_CELLS} * 7 THEN 7 WHEN n <= ${PA_MAX_CELLS} * 49 THEN 6
+                                   WHEN n <= ${PA_MAX_CELLS} * 343 THEN 5 ELSE 4 END AS r
+                       FROM (SELECT count(*) * pow(7, 8 - (SELECT r FROM nr)) AS n FROM rng)),
+                disp AS (SELECT h3_cell_to_parent(h8, (SELECT r FROM dr)) AS c,
+                                ${PERIODS.map((_, i) => `coalesce(avg(CASE WHEN p = ${i} THEN (m > (SELECT t FROM lim))::INT END), 0) AS e${i}`).join(', ')}
+                         FROM j GROUP BY 1)
+                SELECT (SELECT t FROM lim) AS limit_c, (SELECT avg(t0) FROM b) AS mean_c, (SELECT count(*) FROM b) AS cells,
+                       (SELECT list({'p': p, 'warming': warming, 'precip': precip, 'exposed': exposed, 'models': models} ORDER BY p) FROM per) AS periods,
+                       (SELECT r FROM dr) AS cell_res,
+                       (SELECT list({'c': h3_h3_to_string(c), 'e': [${PERIODS.map((_, i) => `e${i}`).join(', ')}]})
+                        FROM disp WHERE greatest(${PERIODS.map((_, i) => `e${i}`).join(', ')}) > 0) AS exposed_cells`);
+            return row || null;
+        }
+
         /** GBIF records hexed for the map: H3 resolution 6, or 5 or 4 for widespread species. */
         async function occurrences(name, since) {
             if (!SAFE_NAME.test(name || '')) return { cells: [], total: 0 };
@@ -380,7 +432,7 @@ const plugin = {
 
         /** Keep the range at the bottom, protected cells above it and GBIF records on top. */
         function restack() {
-            for (const id of [RANGE_LAYER, AOH_LAYER, PA_LAYER, OCC_LAYER]) {
+            for (const id of [RANGE_LAYER, AOH_LAYER, PA_LAYER, EXPOSURE_LAYER, OCC_LAYER]) {
                 const lid = layerId(id);
                 for (const l of [lid, `${lid}-outline`]) if (ml.getLayer(l)) ml.moveLayer(l);
             }
@@ -458,11 +510,13 @@ const plugin = {
             <div class="sp-tabs" role="tablist">
                 <button role="tab" aria-selected="true" data-tab="protection">Protection</button>
                 <button role="tab" aria-selected="false" data-tab="habitat">Habitat</button>
+                <button role="tab" aria-selected="false" data-tab="projection">Projection</button>
                 <button role="tab" aria-selected="false" data-tab="data">Data</button>
                 <button role="tab" aria-selected="false" data-tab="assessment">Assessment</button>
             </div>
             <div class="sp-tab" data-pane="protection" id="sp-protection"></div>
             <div class="sp-tab" data-pane="habitat" id="sp-habitat" hidden></div>
+            <div class="sp-tab" data-pane="projection" id="sp-projection" hidden></div>
             <div class="sp-tab" data-pane="data" id="sp-data" hidden></div>
             <div class="sp-tab" data-pane="assessment" id="sp-assessment" hidden></div>`;
         if (pane) pane.prepend(card);
@@ -472,8 +526,10 @@ const plugin = {
             card.querySelectorAll('[role=tab]').forEach(x => x.setAttribute('aria-selected', String(x === b)));
             card.querySelectorAll('.sp-tab').forEach(p => { p.hidden = p.dataset.pane !== b.dataset.tab; });
             if (b.dataset.tab === 'habitat') loadHabitat().catch(() => {});
+            if (b.dataset.tab === 'projection') loadProjection().catch(() => {});
         }));
         const habitatOpen = () => !$('sp-habitat').hidden;
+        const projectionOpen = () => !$('sp-projection').hidden;
 
         // search box
         const input = $('sp-input'), list = $('sp-results');
@@ -699,6 +755,94 @@ const plugin = {
                 </div>`;
         }
 
+        function renderProjection() {
+            const el = $('sp-projection');
+            const pr = state.proj;
+            const ssp = tokens().SSP || 'ssp370';
+            if (!pr) { el.innerHTML = `<div class="sp-loading">Projecting the climate of the range under ${esc(SCENARIOS[ssp] || ssp)}…</div>`; return; }
+            if (pr.error) { el.innerHTML = `<p class="sp-muted">The projection failed: ${esc(pr.error.slice(0, 160))}</p>`; return; }
+            if (!Number(pr.cells)) { el.innerHTML = '<p class="sp-muted">The climate data cover land only, and none of this range is on land.</p>'; return; }
+            const per = pr.periods || [];
+            const spread = r => { const m = (r?.models || []).filter(x => x != null); return m.length ? `${pct(Math.min(...m))}–${pct(Math.max(...m))}` : ''; };
+            const deg = x => (x == null ? '—' : `${x >= 0 ? '+' : '−'}${Math.abs(x).toFixed(1)} °C`);
+            const sgn = x => (x == null ? '—' : `${x >= 0 ? '+' : '−'}${pct(Math.abs(x))}`);
+            const mid = per[1], late = per[2];
+            const label = i => PERIODS[i].replace('-', '–');
+            el.innerHTML = `
+                <p class="sp-scenario">Scenario <b>${esc(SCENARIOS[ssp])}</b>; change it under Climate scenario in the settings.</p>
+                <div class="sp-tiles">
+                    <div class="sp-tile"><div class="sp-tile-label">Warming by ${label(1)}</div><div class="sp-tile-value">${deg(mid?.warming)}</div></div>
+                    <div class="sp-tile"><div class="sp-tile-label">Precipitation by ${label(1)}</div><div class="sp-tile-value">${sgn(mid?.precip)}</div></div>
+                    <div class="sp-tile"><div class="sp-tile-label">Range exposed by ${label(1)}</div><div class="sp-tile-value">${pct(mid?.exposed)}<small> ${spread(mid)}</small></div></div>
+                    <div class="sp-tile"><div class="sp-tile-label">Range exposed by ${label(2)}</div><div class="sp-tile-value">${pct(late?.exposed)}<small> ${spread(late)}</small></div></div>
+                </div>
+                ${exposureChart(per)}
+                <div class="sp-periods" role="group" aria-label="Period shown on the map">
+                    <span>Map</span>
+                    ${PERIODS.map((p, i) => `<button type="button" data-period="${i}" aria-pressed="${i === state.projPeriod}">${label(i)}</button>`).join('')}
+                </div>
+                <p class="sp-note">A part of the range is exposed when its projected mean annual temperature is above ${pr.limit_c == null ? '—' : Number(pr.limit_c).toFixed(1)} °C, the warmest 1981–2010 mean annual temperature anywhere in the range, which is taken as the species' realized thermal limit (after Trisos et al. 2020).
+                Shares are the median of five CMIP6 climate models, with the range across models in small type; warming and precipitation are their median.
+                Exposure counts heat beyond the conditions the species occupies now, not certain loss: species can tolerate more than their range shows, which is likely for small ranges, and the measure leaves out habitat, land use and dispersal.
+                From CHELSA 2.1 on H3 cells of about 0.7 km² over the ${tokens().PRESENCE === '1' ? 'extant' : 'extant and possibly extant'} native IUCN range.</p>`;
+            el.querySelectorAll('[data-period]').forEach(btn => btn.addEventListener('click', () => {
+                state.projPeriod = Number(btn.dataset.period);
+                renderProjection();
+                drawExposure();
+            }));
+        }
+
+        /** Share of the range exposed in each period: median model as a bar, the five models as a line. */
+        function exposureChart(per) {
+            if (!per.length) return '';
+            const W = 320, H = 120, L = 36, B = 18, T = 8, R = 4;
+            const bw = (W - L - R) / per.length;
+            const y = v => T + (H - T - B) * (1 - v);
+            const bars = per.map((r, i) => {
+                const m = (r.models || []).filter(x => x != null);
+                const x0 = L + i * bw + bw * 0.25, w = bw * 0.5, cx = L + i * bw + bw / 2;
+                const whisk = m.length ? `<line x1="${cx}" x2="${cx}" y1="${y(Math.max(...m))}" y2="${y(Math.min(...m))}" class="sp-whisker"/>`
+                    + m.map(v => `<circle cx="${cx}" cy="${y(v)}" r="2" class="sp-model"/>`).join('') : '';
+                return `<g><title>${PERIODS[r.p]}: ${pct(r.exposed)} exposed, models ${m.length ? `${pct(Math.min(...m))} to ${pct(Math.max(...m))}` : '—'}</title>`
+                    + `<rect x="${x0}" y="${y(r.exposed || 0)}" width="${w}" height="${y(0) - y(r.exposed || 0)}" fill="${COLORS.exposed}" opacity="0.8"/>${whisk}`
+                    + `<text x="${cx}" y="${H - 4}" text-anchor="middle">${PERIODS[r.p].replace('-', '–')}</text></g>`;
+            }).join('');
+            return `
+                <figure class="sp-chart">
+                    <figcaption>Share of the range exposed in each period</figcaption>
+                    <svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Share of the range exposed to temperatures beyond the species' realized limit in each period">
+                        <line x1="${L}" x2="${W - R}" y1="${y(0)}" y2="${y(0)}" class="sp-axis"/>
+                        <line x1="${L}" x2="${W - R}" y1="${y(1)}" y2="${y(1)}" class="sp-grid"/>
+                        <line x1="${L}" x2="${W - R}" y1="${y(0.5)}" y2="${y(0.5)}" class="sp-grid"/>
+                        <text x="${L - 4}" y="${y(1) + 4}" text-anchor="end">100%</text>
+                        <text x="${L - 4}" y="${y(0.5) + 4}" text-anchor="end">50%</text>
+                        <text x="${L - 4}" y="${y(0) + 4}" text-anchor="end">0</text>
+                        ${bars}
+                    </svg>
+                </figure>
+                <div class="sp-legend">
+                    <span><i style="background:${COLORS.exposed}"></i>Median of five models</span>
+                    <span><i class="sp-model-key"></i>Each model</span>
+                </div>`;
+        }
+
+        function drawExposure() {
+            const pr = state.proj, k = state.projPeriod;
+            const features = (pr && !pr.error ? pr.exposed_cells || [] : []).filter(r => r.e[k] > 0).map(r => ({
+                type: 'Feature',
+                properties: { share: r.e[k], 'share of cell exposed': pct(r.e[k]) },
+                geometry: { type: 'Polygon', coordinates: [h3.cellToBoundary(r.c, true)] },
+            }));
+            setLayer(EXPOSURE_LAYER, { type: 'FeatureCollection', features }, {
+                displayName: 'Climate exposure', fillColor: COLORS.exposed, outlineColor: COLORS.exposed, opacity: 0.5,
+                tooltipFields: ['share of cell exposed'],
+                after: lid => {
+                    ml.setPaintProperty(lid, 'fill-opacity', ['+', 0.15, ['*', 0.5, ['get', 'share']]]);
+                    if (ml.getLayer(`${lid}-outline`)) ml.setPaintProperty(`${lid}-outline`, 'line-opacity', 0);
+                },
+            });
+        }
+
         function renderData() {
             const o = state.occ;
             const rangeOn = mm.layers.get(layerId(RANGE_LAYER))?.visible !== false;
@@ -713,6 +857,9 @@ const plugin = {
                     <li><label><input type="checkbox" data-layer="${AOH_LAYER}" ${aohOn ? 'checked' : ''}>
                         <i class="sp-swatch" style="background:${COLORS.aoh}"></i>Area of habitat</label>
                         <span class="sp-muted">${mm.layers.has(layerId(AOH_LAYER)) ? '' : 'open the Habitat tab'}</span></li>
+                    <li><label><input type="checkbox" data-layer="${EXPOSURE_LAYER}" ${mm.layers.get(layerId(EXPOSURE_LAYER))?.visible !== false ? 'checked' : ''}>
+                        <i class="sp-swatch" style="background:${COLORS.exposed}"></i>Climate exposure</label>
+                        <span class="sp-muted">${mm.layers.has(layerId(EXPOSURE_LAYER)) ? '' : 'open the Projection tab'}</span></li>
                     <li><label><input type="checkbox" data-layer="${PA_LAYER}" ${paOn ? 'checked' : ''}>
                         <i class="sp-swatch" style="background:linear-gradient(90deg, ${COLORS.strict} 50%, ${COLORS.other} 50%)"></i>Protected areas in the range</label></li>
                     <li><label><input type="checkbox" data-layer="${OCC_LAYER}" ${occOn ? 'checked' : ''}>
@@ -829,6 +976,28 @@ const plugin = {
             return habitatJob;
         }
 
+        /** Compute the climate exposure for the current species, range and scenario once, when first asked for. */
+        function loadProjection() {
+            const id = bus.values[controlId], presence = tokens().PRESENCE, ssp = tokens().SSP || 'ssp370';
+            const key = `${id}|${presence}|${ssp}`;
+            if (key === projKey && projJob) return projJob;
+            projKey = key;
+            const s = ++seq.proj;
+            state.proj = null;
+            renderProjection();
+            projJob = projection(id, presence, ssp)
+                .then(pr => { if (s === seq.proj) state.proj = pr || { error: 'no range cells' }; })
+                .catch(err => { if (s === seq.proj) state.proj = { error: err.message }; })
+                .finally(() => { if (s === seq.proj) { renderProjection(); drawExposure(); } });
+            return projJob;
+        }
+
+        function resetProjection() {
+            projKey = null; projJob = null; state.proj = null; seq.proj++;
+            ml.getSource(layerId(EXPOSURE_LAYER))?.setData({ type: 'FeatureCollection', features: [] });
+            if (projectionOpen()) loadProjection(); else renderProjection();
+        }
+
         function resetHabitat() {
             habitatKey = null; habitatJob = null; state.habitat = null; state.aoh = null; seq.habitat++;
             ml.getSource(layerId(AOH_LAYER))?.setData({ type: 'FeatureCollection', features: [] });
@@ -841,6 +1010,7 @@ const plugin = {
             refreshOcc(name);
             refreshStats(id);
             resetHabitat();
+            resetProjection();
             try { history.replaceState(null, '', `#species=${id}`); } catch { /* sandboxed */ }
         }
 
@@ -865,7 +1035,8 @@ const plugin = {
             const id = bus.values[controlId];
             const name = tokens().SPECIES_NAME;
             if (changed.has('SPECIES')) { refreshAll(id, name); return; }
-            if (changed.has('PRESENCE')) { refreshRange(id, { fit: false }); refreshStats(id); resetHabitat(); }
+            if (changed.has('PRESENCE')) { refreshRange(id, { fit: false }); refreshStats(id); resetHabitat(); resetProjection(); }
+            if (changed.has('SSP')) resetProjection();
             if (changed.has('OECM')) { renderProtection(); drawProtected(); renderHabitat(); }
             if (changed.has('SINCE')) refreshOcc(name);
         });
@@ -907,11 +1078,18 @@ const plugin = {
             description: 'Read what the species card shows for the current species: names, Red List assessment, Wikipedia summary, GBIF record count, and the protection measures of its IUCN range (range area, shares in strict and other protected areas and OECMs, protection target and score). With include_habitat, it also returns the Habitat tab: the area of habitat (range clipped to the IUCN habitats of the species on the Lumbierres habitat map and to its elevation limits) and the share of it protected, and tree cover in the range in 2000 and its loss each year from 2001 to 2025, inside and outside protected areas (this can take 30 seconds). Measures still being computed are returned as null.',
             inputSchema: {
                 type: 'object',
-                properties: { include_habitat: { type: 'boolean', description: 'Also compute and return the tree cover and loss measures.' } },
+                properties: {
+                    include_habitat: { type: 'boolean', description: 'Also compute and return the area of habitat and the tree cover and loss measures.' },
+                    include_projection: { type: 'boolean', description: 'Also compute and return the Projection tab: warming, precipitation change and climate exposure of the range in 2011-2040, 2041-2070 and 2071-2100 under the scenario in the {{SSP}} control.' },
+                },
                 required: [],
             },
-            execute: async ({ include_habitat = false } = {}) => {
-                if (include_habitat) await loadHabitat().catch(() => {});
+            execute: async ({ include_habitat = false, include_projection = false } = {}) => {
+                await Promise.all([
+                    include_habitat ? loadHabitat().catch(() => {}) : null,
+                    include_projection ? loadProjection().catch(() => {}) : null,
+                ]);
+                const pr = state.proj;
                 const h = state.habitat, a = state.aoh;
                 const aohKm = a && !a.error ? Number(a.aoh_km2) : null;
                 const t = state.taxon, s = state.stats;
@@ -933,6 +1111,12 @@ const plugin = {
                         target_share: target, protection_score: target && prot != null ? Math.round(Math.min(1, prot / target) * 100) : null,
                         method: 'H3 resolution 8 cells of the range inside WDPA (not proposed, not UNESCO-MAB); strict = IUCN categories Ia, Ib, II; target from Jetz et al. 2022 (100% below 10,000 km2, 15% above 2.5 million km2, log-linear between).',
                     } : (s?.error ? { error: s.error } : null),
+                    projection: !include_projection ? undefined : pr && !pr.error ? {
+                        scenario: SCENARIOS[tokens().SSP || 'ssp370'],
+                        realized_thermal_limit_c: pr.limit_c, mean_annual_temperature_1981_2010_c: pr.mean_c,
+                        periods: (pr.periods || []).map(r => ({ period: PERIODS[r.p], warming_c: r.warming, precipitation_change: r.precip, share_exposed: r.exposed, share_exposed_by_model: Object.fromEntries(MODELS.map((g, k) => [g, r.models?.[k]])) })),
+                        method: 'Exposure after Trisos et al. 2020: share of range H3 res 8 cells whose projected mean annual temperature (CHELSA 2.1, median of five CMIP6 models) exceeds the warmest 1981-2010 mean annual temperature in the range. Exposure is heat beyond the occupied conditions, not certain loss.',
+                    } : (pr?.error ? { error: pr.error } : null),
                     area_of_habitat: !include_habitat ? undefined : a && !a.error ? {
                         aoh_km2: Math.round(aohKm), iucn_habitats_on_map: a.habitats, habitat_codes: a.codes, codes_not_on_map: a.codes_off_map,
                         elevation_limits_m: [a.elev_lo, a.elev_hi],
@@ -954,7 +1138,7 @@ const plugin = {
 
         ctx.addPrompt(`## Species card
 
-The side panel shows one species at a time: the species control (\`${controlId}\`) holds its IUCN \`id_no\` as {{SPECIES}} and its binomial as {{SPECIES_NAME}}. Change species with \`select_species\`, never with \`create_control\`. Read the card's numbers with \`get_species_card\` rather than recomputing them. The map layers \`upload-${RANGE_LAYER}\` (IUCN range), \`upload-${PA_LAYER}\` (protected areas within the range, as H3 cells) and \`upload-${OCC_LAYER}\` (GBIF records) follow the species. The card's Habitat tab gives the area of habitat (layer \`upload-${AOH_LAYER}\`, drawn once the tab is opened) and tree cover loss in the range; read both with \`get_species_card\` and \`include_habitat: true\`.`);
+The side panel shows one species at a time: the species control (\`${controlId}\`) holds its IUCN \`id_no\` as {{SPECIES}} and its binomial as {{SPECIES_NAME}}. Change species with \`select_species\`, never with \`create_control\`. Read the card's numbers with \`get_species_card\` rather than recomputing them. The map layers \`upload-${RANGE_LAYER}\` (IUCN range), \`upload-${PA_LAYER}\` (protected areas within the range, as H3 cells) and \`upload-${OCC_LAYER}\` (GBIF records) follow the species. The card's Habitat tab gives the area of habitat (layer \`upload-${AOH_LAYER}\`, drawn once the tab is opened) and tree cover loss in the range; read both with \`get_species_card\` and \`include_habitat: true\`. The Projection tab gives warming and climate exposure of the range under the scenario in {{SSP}} (layer \`upload-${EXPOSURE_LAYER}\`); read it with \`include_projection: true\`.`);
 
         /* ── First species ───────────────────────────────────────────── */
 

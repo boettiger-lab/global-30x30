@@ -123,6 +123,27 @@
             ]
           },
           {
+            "id": "scenario",
+            "label": "Climate scenario",
+            "token": "SSP",
+            "control": "segmented",
+            "value": "ssp370",
+            "options": [
+              {
+                "value": "ssp126",
+                "label": "SSP1-2.6"
+              },
+              {
+                "value": "ssp370",
+                "label": "SSP3-7.0"
+              },
+              {
+                "value": "ssp585",
+                "label": "SSP5-8.5"
+              }
+            ]
+          },
+          {
             "id": "since",
             "label": "Occurrence records",
             "token": "SINCE",
