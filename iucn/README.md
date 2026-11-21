@@ -41,7 +41,17 @@ shares are counted on. Cells are grouped to the finest resolution that keeps the
 under 25,000 cells, coloured by their main kind of protection and shaded by how much of
 the cell is protected. The full WDPA and OECM maps are in the layer list.
 
-The Habitat trends tab uses Hansen Global Forest Change v1.13 (H3 resolution 8). Tree
+The Habitat tab gives the area of habitat (Brooks et al. 2019): the H3 resolution 9
+cells of the range whose class on the Lumbierres et al. (2021) habitat map matches the
+species' IUCN habitat codes through the Lumbierres crosswalk, and whose mean elevation
+on the Copernicus GLO-90 surface model lies within the assessment's elevation limits
+(no limit where none is recorded). The share of it in protected areas is counted as for
+the range, and the habitat protection score applies the same target to the area of
+habitat, which is closer to Map of Life's method. The map's classes are broad, so for
+generalists the area of habitat is close to the range. For a name with more than one
+`id_no`, the habitat codes and elevation limits come from the chosen id's assessment.
+
+The tab also gives tree cover loss from Hansen Global Forest Change v1.13 (H3 resolution 8). Tree
 cover in 2000 is canopy area weighted by cover. Loss is the whole area of 30 m pixels
 that lost canopy in each year from 2001 to 2025, from any cause, without regrowth.
 Because one is cover-weighted and the other counts whole pixels, loss is reported as a

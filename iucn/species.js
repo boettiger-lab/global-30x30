@@ -32,6 +32,9 @@ const PATHS = {
     oecm: 's3://public-wdpa/wdoecm-may-2026/hex/h0=*/data_0.parquet',
     treeCover: 's3://public-forest-change/tree-cover-loss/tree-cover-2000/hex/h0=*/data_0.parquet',
     treeLoss: 's3://public-forest-change/tree-cover-loss/loss-year/hex/h0=*/data_0.parquet',
+    habitatMap: 's3://public-iucn/lumbierres-habitat-2021/fractions/hex/h0=*/data_0.parquet',
+    crosswalk: 's3://public-iucn/lumbierres-habitat-2021/crosswalk.parquet',
+    dem: 's3://public-dem/copernicus-glo90/hex/h0=*/data_0.parquet',
 };
 
 const GBIF_FILTER = `NOT list_has_any(issue, ['ZERO_COORDINATE', 'COORDINATE_INVALID', 'COORDINATE_OUT_OF_RANGE', 'COUNTRY_COORDINATE_MISMATCH'])
@@ -53,9 +56,10 @@ const CATEGORIES = {
     DD: ['Data Deficient', '#d1d1c6', '#1a1a1a'],
 };
 
-const COLORS = { range: '#7cb342', rangeLine: '#33691e', occ: '#7b4fc9', strict: '#e8a33d', other: '#5b8cc0', oecm: '#4db6ac', none: '#e6e6e0', loss: '#a0522d' };
+const COLORS = { range: '#7cb342', rangeLine: '#33691e', occ: '#7b4fc9', strict: '#e8a33d', other: '#5b8cc0', oecm: '#4db6ac', none: '#e6e6e0', loss: '#a0522d', aoh: '#1b5e20' };
 const RANGE_LAYER = 'iucn-range';
 const PA_LAYER = 'protected-in-range';
+const AOH_LAYER = 'area-of-habitat';
 const OCC_LAYER = 'gbif-records';
 // Protected cells drawn on the map: the finest H3 resolution that keeps the range under this many cells.
 const PA_MAX_CELLS = 25000;
@@ -97,7 +101,7 @@ const plugin = {
         const mm = ctx.map;
         const ml = mm.map;
 
-        const state = { taxon: null, stats: null, occ: null, wiki: null, photo: null, habitat: null };
+        const state = { taxon: null, stats: null, occ: null, wiki: null, photo: null, habitat: null, aoh: null };
         const taxa = new Map();   // id → taxonomy row
         const seq = { info: 0, range: 0, occ: 0, stats: 0, habitat: 0 };
         let habitatKey = null, habitatJob = null;
@@ -226,6 +230,64 @@ const plugin = {
             return row || null;
         }
 
+        /**
+         * Area of habitat (Brooks et al. 2019): the parts of the range whose habitat
+         * class on the Lumbierres et al. (2021) map matches the species' IUCN habitat
+         * codes and whose mean elevation lies within its elevation limits, counted on
+         * H3 resolution 9 cells, with the share in protected areas.
+         */
+        async function areaOfHabitat(id, presence) {
+            const elev = col => `CASE WHEN isnan(try_cast(${col} AS DOUBLE)) THEN NULL ELSE try_cast(${col} AS DOUBLE) END`;
+            const [row] = await db.query(`
+                WITH ${rangeSrc(id, presence)},
+                nr AS (SELECT CASE WHEN min(native_res) >= 8 THEN 8 WHEN min(native_res) >= 6 THEN 6 ELSE 5 END AS r FROM src),
+                rng AS (SELECT DISTINCT CASE (SELECT r FROM nr) WHEN 8 THEN h8 WHEN 6 THEN h6 ELSE h5 END AS cell FROM src),
+                tx AS (SELECT habitat_codes, ${elev('elevation_lower_m')} AS lo, ${elev('elevation_upper_m')} AS hi
+                       FROM read_parquet('${paths.taxonomy}') WHERE sis_taxon_id = ${Number(id)}),
+                codes AS (SELECT DISTINCT unnest(habitat_codes) AS code FROM tx),
+                xw AS (SELECT * FROM read_parquet('${paths.crosswalk}') WHERE iucn_habitat_code IN (SELECT code FROM codes)),
+                cls AS (SELECT DISTINCT habitat_class FROM xw),
+                pa AS (SELECT h8, max(CASE WHEN IUCN_CAT IN ('Ia', 'Ib', 'II') THEN 2 ELSE 1 END) AS lvl
+                       FROM read_parquet('${paths.wdpa}', hive_partitioning = true)
+                       WHERE h0 IN (SELECT h0 FROM h0s) AND ${WDPA_FILTER}
+                         AND h3_cell_to_parent(h8, (SELECT r FROM nr)) IN (SELECT cell FROM rng)
+                       GROUP BY h8),
+                oe AS (SELECT DISTINCT h8 FROM read_parquet('${paths.oecm}', hive_partitioning = true)
+                       WHERE h0 IN (SELECT h0 FROM h0s)
+                         AND h3_cell_to_parent(h8, (SELECT r FROM nr)) IN (SELECT cell FROM rng)),
+                hab AS (SELECT h9, any_value(h8) AS h8,
+                               coalesce(sum(frac) FILTER (habitat_class IN (SELECT habitat_class FROM cls)), 0) AS s,
+                               coalesce(sum(frac) FILTER (habitat_class <> -32768), 0) AS m
+                        FROM read_parquet('${paths.habitatMap}', hive_partitioning = true)
+                        WHERE h0 IN (SELECT h0 FROM h0s) AND h3_cell_to_parent(h8, (SELECT r FROM nr)) IN (SELECT cell FROM rng)
+                        GROUP BY h9),
+                dem AS (SELECT h9, elevation FROM read_parquet('${paths.dem}', hive_partitioning = true)
+                        WHERE h0 IN (SELECT h0 FROM h0s) AND h3_cell_to_parent(h8, (SELECT r FROM nr)) IN (SELECT cell FROM rng)),
+                j AS (SELECT hab.h9, hab.h8, hab.s * h3_cell_area(hab.h9, 'km^2') AS hk, hab.m * h3_cell_area(hab.h9, 'km^2') AS mk,
+                             (d.elevation IS NULL
+                              OR (((SELECT lo FROM tx) IS NULL OR d.elevation >= (SELECT lo FROM tx))
+                                  AND ((SELECT hi FROM tx) IS NULL OR d.elevation <= (SELECT hi FROM tx)))) AS inband,
+                             pa.lvl, oe.h8 IS NOT NULL AS in_oecm
+                      FROM hab LEFT JOIN dem d USING (h9) LEFT JOIN pa ON pa.h8 = hab.h8 LEFT JOIN oe ON oe.h8 = hab.h8),
+                dr AS (SELECT CASE WHEN n <= ${PA_MAX_CELLS} THEN 8 WHEN n <= ${PA_MAX_CELLS} * 7 THEN 7 WHEN n <= ${PA_MAX_CELLS} * 49 THEN 6
+                                   WHEN n <= ${PA_MAX_CELLS} * 343 THEN 5 ELSE 4 END AS r
+                       FROM (SELECT count(*) * pow(7, 8 - (SELECT r FROM nr)) AS n FROM rng)),
+                disp AS (SELECT h3_cell_to_parent(h9, (SELECT r FROM dr)) AS c, sum(hk) AS k FROM j WHERE inband AND hk > 0 GROUP BY 1)
+                SELECT (SELECT lo FROM tx) AS elev_lo, (SELECT hi FROM tx) AS elev_hi,
+                       (SELECT list(code ORDER BY code) FROM codes) AS codes,
+                       (SELECT list(DISTINCT iucn_habitat_name) FROM xw) AS habitats,
+                       (SELECT count(*) FROM codes WHERE code NOT IN (SELECT iucn_habitat_code FROM xw)) AS codes_off_map,
+                       sum(mk) AS mapped_km2, sum(hk) AS habitat_km2,
+                       coalesce(sum(hk) FILTER (inband), 0) AS aoh_km2,
+                       coalesce(sum(hk) FILTER (inband AND lvl = 2), 0) AS strict_km2,
+                       coalesce(sum(hk) FILTER (inband AND lvl = 1), 0) AS other_km2,
+                       coalesce(sum(hk) FILTER (inband AND lvl IS NULL AND in_oecm), 0) AS oecm_km2,
+                       (SELECT r FROM dr) AS cell_res,
+                       (SELECT list({'c': h3_h3_to_string(c), 'f': least(1, k / h3_cell_area(c, 'km^2'))}) FROM disp) AS cells
+                FROM j`);
+            return row || null;
+        }
+
         /** GBIF records hexed for the map: H3 resolution 6, or 5 or 4 for widespread species. */
         async function occurrences(name, since) {
             if (!SAFE_NAME.test(name || '')) return { cells: [], total: 0 };
@@ -318,7 +380,7 @@ const plugin = {
 
         /** Keep the range at the bottom, protected cells above it and GBIF records on top. */
         function restack() {
-            for (const id of [RANGE_LAYER, PA_LAYER, OCC_LAYER]) {
+            for (const id of [RANGE_LAYER, AOH_LAYER, PA_LAYER, OCC_LAYER]) {
                 const lid = layerId(id);
                 for (const l of [lid, `${lid}-outline`]) if (ml.getLayer(l)) ml.moveLayer(l);
             }
@@ -341,6 +403,23 @@ const plugin = {
                 },
             });
             restack();
+        }
+
+        function drawHabitat() {
+            const a = state.aoh;
+            const features = (a && !a.error ? a.cells || [] : []).map(r => ({
+                type: 'Feature',
+                properties: { share: r.f, 'share of cell that is habitat': pct(r.f) },
+                geometry: { type: 'Polygon', coordinates: [h3.cellToBoundary(r.c, true)] },
+            }));
+            setLayer(AOH_LAYER, { type: 'FeatureCollection', features }, {
+                displayName: 'Area of habitat', fillColor: COLORS.aoh, outlineColor: COLORS.aoh, opacity: 0.5,
+                tooltipFields: ['share of cell that is habitat'],
+                after: lid => {
+                    ml.setPaintProperty(lid, 'fill-opacity', ['+', 0.1, ['*', 0.5, ['get', 'share']]]);
+                    if (ml.getLayer(`${lid}-outline`)) ml.setPaintProperty(`${lid}-outline`, 'line-opacity', 0);
+                },
+            });
         }
 
         function fitTo(fc) {
@@ -378,7 +457,7 @@ const plugin = {
             <div class="sp-about" id="sp-about"></div>
             <div class="sp-tabs" role="tablist">
                 <button role="tab" aria-selected="true" data-tab="protection">Protection</button>
-                <button role="tab" aria-selected="false" data-tab="habitat">Habitat trends</button>
+                <button role="tab" aria-selected="false" data-tab="habitat">Habitat</button>
                 <button role="tab" aria-selected="false" data-tab="data">Data</button>
                 <button role="tab" aria-selected="false" data-tab="assessment">Assessment</button>
             </div>
@@ -519,17 +598,56 @@ const plugin = {
         }
 
         function renderHabitat() {
-            const el = $('sp-habitat');
+            $('sp-habitat').innerHTML = `<h4 class="sp-h">Area of habitat</h4>${aohSection()}<h4 class="sp-h">Tree cover loss</h4>${treeSection()}`;
+        }
+
+        function aohSection() {
+            const a = state.aoh;
+            if (!a) return '<div class="sp-loading">Mapping the habitat in the range…</div>';
+            if (a.error) return `<p class="sp-muted">The area of habitat failed: ${esc(a.error.slice(0, 160))}</p>`;
+            const habitats = a.habitats || [];
+            if (!habitats.length) {
+                return `<p class="sp-muted">None of this species' IUCN habitats${a.codes?.length ? ` (codes ${esc(a.codes.join(', '))})` : ''} is on the land habitat map, so it has no area of habitat here.</p>`;
+            }
+            const range = Number(state.stats?.range_km2) || Number(a.mapped_km2) || 0;
+            const aoh = Number(a.aoh_km2) || 0;
+            const withOecm = tokens().OECM === '1';
+            const strict = aoh ? a.strict_km2 / aoh : null, other = aoh ? a.other_km2 / aoh : null, oecm = aoh && withOecm ? a.oecm_km2 / aoh : 0;
+            const prot = strict == null ? null : strict + other + oecm;
+            const target = protectionTarget(aoh);
+            const score = target && prot != null ? Math.min(1, prot / target) * 100 : null;
+            const lo = a.elev_lo, hi = a.elev_hi;
+            const band = lo == null && hi == null ? 'none recorded' : `${lo == null ? 'any' : num(lo)} to ${hi == null ? 'any' : num(hi)} m`;
+            return `
+                <div class="sp-tiles">
+                    <div class="sp-tile"><div class="sp-tile-label">Area of habitat</div><div class="sp-tile-value">${num(aoh)} km²</div></div>
+                    <div class="sp-tile"><div class="sp-tile-label">Share of the range</div><div class="sp-tile-value">${pct(range ? Math.min(1, aoh / range) : null)}</div></div>
+                    <div class="sp-tile"><div class="sp-tile-label">Habitat protected</div><div class="sp-tile-value">${pct(prot)}<small> ${pct(strict)} strictly</small></div></div>
+                    <div class="sp-tile"><div class="sp-tile-label">Habitat protection score</div><div class="sp-tile-value">${score == null ? '—' : Math.round(score)}<small> / 100</small></div></div>
+                </div>
+                <table class="sp-table sp-aoh-table">
+                    <tr><th>IUCN habitats on the map</th><td>${esc(habitats.slice().sort().join('; '))}</td></tr>
+                    ${a.codes_off_map ? `<tr><th>Habitats not on the map</th><td>${num(a.codes_off_map)} of ${num(a.codes.length)} codes</td></tr>` : ''}
+                    <tr><th>Elevation limits</th><td>${band}</td></tr>
+                </table>
+                <p class="sp-note">The area of habitat keeps the parts of the range whose class on the Lumbierres et al. (2021) habitat map matches the species' IUCN habitats and whose mean elevation lies within its elevation limits (Brooks et al. 2019), counted on H3 cells of about 0.1 km².
+                The map's 11 classes are broad, so for habitat generalists the area of habitat is close to the range.
+                Elevation is the Copernicus GLO-90 surface model, which includes the forest canopy.
+                The score applies the Protection tab's target to the area of habitat${target ? `, here ${pct(target)}` : ''}, which is closer to Map of Life's method.
+                Protected areas are counted as on the Protection tab.</p>`;
+        }
+
+        function treeSection() {
             const h = state.habitat;
-            if (!h) { el.innerHTML = '<div class="sp-loading">Measuring tree cover and its loss in the range…</div>'; return; }
-            if (h.error) { el.innerHTML = `<p class="sp-muted">The habitat measures failed: ${esc(h.error.slice(0, 160))}</p>`; return; }
+            if (!h) return '<div class="sp-loading">Measuring tree cover and its loss in the range…</div>';
+            if (h.error) return `<p class="sp-muted">The tree cover measures failed: ${esc(h.error.slice(0, 160))}</p>`;
             const land = Number(h.land_km2) || 0, tree = Number(h.tree_km2) || 0, treePa = Number(h.tree_pa_km2) || 0;
             const landPa = Number(h.land_pa_km2) || 0;
-            if (!land) { el.innerHTML = '<p class="sp-muted">The tree cover data cover land between 80° N and 60° S, and none of this range is in it.</p>'; return; }
+            if (!land) return '<p class="sp-muted">The tree cover data cover land between 80° N and 60° S, and none of this range is in it.</p>';
             const years = h.loss || [];
             const lossP = years.reduce((a, r) => a + r.p, 0), lossU = years.reduce((a, r) => a + r.u, 0);
             const ratio = (a, b) => (b > 0 ? a / b : null);
-            el.innerHTML = `
+            return `
                 <div class="sp-tiles">
                     <div class="sp-tile"><div class="sp-tile-label">Tree cover in 2000</div><div class="sp-tile-value">${pct(ratio(tree, land))}<small> of the range</small></div></div>
                     <div class="sp-tile"><div class="sp-tile-label">Tree cover lost 2001–2025</div><div class="sp-tile-value">${pct(ratio(lossP + lossU, land), 1)}<small> of the range</small></div></div>
@@ -586,11 +704,15 @@ const plugin = {
             const rangeOn = mm.layers.get(layerId(RANGE_LAYER))?.visible !== false;
             const occOn = mm.layers.get(layerId(OCC_LAYER))?.visible !== false;
             const paOn = mm.layers.get(layerId(PA_LAYER))?.visible !== false;
+            const aohOn = mm.layers.get(layerId(AOH_LAYER))?.visible !== false;
             const since = tokens().SINCE;
             $('sp-data').innerHTML = `
                 <ul class="sp-layers">
                     <li><label><input type="checkbox" data-layer="${RANGE_LAYER}" ${rangeOn ? 'checked' : ''}>
                         <i class="sp-swatch" style="background:${COLORS.range};border-color:${COLORS.rangeLine}"></i>IUCN expert range map</label></li>
+                    <li><label><input type="checkbox" data-layer="${AOH_LAYER}" ${aohOn ? 'checked' : ''}>
+                        <i class="sp-swatch" style="background:${COLORS.aoh}"></i>Area of habitat</label>
+                        <span class="sp-muted">${mm.layers.has(layerId(AOH_LAYER)) ? '' : 'open the Habitat tab'}</span></li>
                     <li><label><input type="checkbox" data-layer="${PA_LAYER}" ${paOn ? 'checked' : ''}>
                         <i class="sp-swatch" style="background:linear-gradient(90deg, ${COLORS.strict} 50%, ${COLORS.other} 50%)"></i>Protected areas in the range</label></li>
                     <li><label><input type="checkbox" data-layer="${OCC_LAYER}" ${occOn ? 'checked' : ''}>
@@ -693,16 +815,23 @@ const plugin = {
             habitatKey = key;
             const s = ++seq.habitat;
             state.habitat = null;
+            state.aoh = null;
             renderHabitat();
-            habitatJob = habitat(id, presence)
+            const tree = habitat(id, presence)
                 .then(h => { if (s === seq.habitat) state.habitat = h || { error: 'no range cells' }; })
                 .catch(err => { if (s === seq.habitat) state.habitat = { error: err.message }; })
                 .finally(() => { if (s === seq.habitat) renderHabitat(); });
+            const aoh = areaOfHabitat(id, presence)
+                .then(a => { if (s === seq.habitat) state.aoh = a || { error: 'no range cells' }; })
+                .catch(err => { if (s === seq.habitat) state.aoh = { error: err.message }; })
+                .finally(() => { if (s === seq.habitat) { renderHabitat(); drawHabitat(); } });
+            habitatJob = Promise.all([tree, aoh]);
             return habitatJob;
         }
 
         function resetHabitat() {
-            habitatKey = null; habitatJob = null; state.habitat = null; seq.habitat++;
+            habitatKey = null; habitatJob = null; state.habitat = null; state.aoh = null; seq.habitat++;
+            ml.getSource(layerId(AOH_LAYER))?.setData({ type: 'FeatureCollection', features: [] });
             if (habitatOpen()) loadHabitat(); else renderHabitat();
         }
 
@@ -737,7 +866,7 @@ const plugin = {
             const name = tokens().SPECIES_NAME;
             if (changed.has('SPECIES')) { refreshAll(id, name); return; }
             if (changed.has('PRESENCE')) { refreshRange(id, { fit: false }); refreshStats(id); resetHabitat(); }
-            if (changed.has('OECM')) { renderProtection(); drawProtected(); }
+            if (changed.has('OECM')) { renderProtection(); drawProtected(); renderHabitat(); }
             if (changed.has('SINCE')) refreshOcc(name);
         });
 
@@ -775,7 +904,7 @@ const plugin = {
 
         ctx.tools.registerLocal({
             name: 'get_species_card',
-            description: 'Read what the species card shows for the current species: names, Red List assessment, Wikipedia summary, GBIF record count, and the protection measures of its IUCN range (range area, shares in strict and other protected areas and OECMs, protection target and score). With include_habitat, it also returns the Habitat trends tab: tree cover in the range in 2000 and its loss each year from 2001 to 2025, inside and outside protected areas (this can take 20 seconds). Measures still being computed are returned as null.',
+            description: 'Read what the species card shows for the current species: names, Red List assessment, Wikipedia summary, GBIF record count, and the protection measures of its IUCN range (range area, shares in strict and other protected areas and OECMs, protection target and score). With include_habitat, it also returns the Habitat tab: the area of habitat (range clipped to the IUCN habitats of the species on the Lumbierres habitat map and to its elevation limits) and the share of it protected, and tree cover in the range in 2000 and its loss each year from 2001 to 2025, inside and outside protected areas (this can take 30 seconds). Measures still being computed are returned as null.',
             inputSchema: {
                 type: 'object',
                 properties: { include_habitat: { type: 'boolean', description: 'Also compute and return the tree cover and loss measures.' } },
@@ -783,7 +912,8 @@ const plugin = {
             },
             execute: async ({ include_habitat = false } = {}) => {
                 if (include_habitat) await loadHabitat().catch(() => {});
-                const h = state.habitat;
+                const h = state.habitat, a = state.aoh;
+                const aohKm = a && !a.error ? Number(a.aoh_km2) : null;
                 const t = state.taxon, s = state.stats;
                 const tot = Number(s?.cells) || 0;
                 const withOecm = tokens().OECM === '1';
@@ -803,6 +933,14 @@ const plugin = {
                         target_share: target, protection_score: target && prot != null ? Math.round(Math.min(1, prot / target) * 100) : null,
                         method: 'H3 resolution 8 cells of the range inside WDPA (not proposed, not UNESCO-MAB); strict = IUCN categories Ia, Ib, II; target from Jetz et al. 2022 (100% below 10,000 km2, 15% above 2.5 million km2, log-linear between).',
                     } : (s?.error ? { error: s.error } : null),
+                    area_of_habitat: !include_habitat ? undefined : a && !a.error ? {
+                        aoh_km2: Math.round(aohKm), iucn_habitats_on_map: a.habitats, habitat_codes: a.codes, codes_not_on_map: a.codes_off_map,
+                        elevation_limits_m: [a.elev_lo, a.elev_hi],
+                        share_strict: aohKm ? a.strict_km2 / aohKm : null, share_other_protected: aohKm ? a.other_km2 / aohKm : null,
+                        share_oecm_only: aohKm ? a.oecm_km2 / aohKm : null, oecms_counted: tokens().OECM === '1',
+                        target_share: protectionTarget(aohKm),
+                        method: 'Range cells (H3 res 9) whose Lumbierres et al. 2021 habitat class matches the IUCN habitat codes via the Lumbierres crosswalk, and whose Copernicus GLO-90 mean elevation is within the elevation limits (Brooks et al. 2019). Protection as for the range; score target uses the AOH size.',
+                    } : (a?.error ? { error: a.error } : null),
                     habitat: !include_habitat ? undefined : h && !h.error ? {
                         land_km2: Math.round(Number(h.land_km2)), land_in_protected_km2: Math.round(Number(h.land_pa_km2)),
                         tree_cover_2000_km2: Math.round(Number(h.tree_km2)),
@@ -816,7 +954,7 @@ const plugin = {
 
         ctx.addPrompt(`## Species card
 
-The side panel shows one species at a time: the species control (\`${controlId}\`) holds its IUCN \`id_no\` as {{SPECIES}} and its binomial as {{SPECIES_NAME}}. Change species with \`select_species\`, never with \`create_control\`. Read the card's numbers with \`get_species_card\` rather than recomputing them. The map layers \`upload-${RANGE_LAYER}\` (IUCN range), \`upload-${PA_LAYER}\` (protected areas within the range, as H3 cells) and \`upload-${OCC_LAYER}\` (GBIF records) follow the species. The card's Habitat trends tab gives tree cover loss in the range; read it with \`get_species_card\` and \`include_habitat: true\`.`);
+The side panel shows one species at a time: the species control (\`${controlId}\`) holds its IUCN \`id_no\` as {{SPECIES}} and its binomial as {{SPECIES_NAME}}. Change species with \`select_species\`, never with \`create_control\`. Read the card's numbers with \`get_species_card\` rather than recomputing them. The map layers \`upload-${RANGE_LAYER}\` (IUCN range), \`upload-${PA_LAYER}\` (protected areas within the range, as H3 cells) and \`upload-${OCC_LAYER}\` (GBIF records) follow the species. The card's Habitat tab gives the area of habitat (layer \`upload-${AOH_LAYER}\`, drawn once the tab is opened) and tree cover loss in the range; read both with \`get_species_card\` and \`include_habitat: true\`.`);
 
         /* ── First species ───────────────────────────────────────────── */
 
