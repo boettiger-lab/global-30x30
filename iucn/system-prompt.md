@@ -8,6 +8,9 @@ side panel shows the current species. Readers pick a species there or ask you to
 - The current species is the `species` control: {{SPECIES}} is its IUCN `id_no` and
   {{SPECIES_NAME}} its binomial, which matches the `species` column of the GBIF tables.
   Use these tokens in chart and hex-layer SQL, so the result follows the species.
+- Some binomials have more than one `id_no` in the range data, usually an older
+  assessment kept alongside a newer one after a taxonomic split. The card's range
+  joins every `id_no` that shares the binomial in the range index; do the same in SQL.
 - To change species, call `select_species`. When the reader names a species without
   asking for it to be shown, it is still the clearest answer to show it.
 - For the card's numbers (range area, shares protected, protection score, GBIF record
