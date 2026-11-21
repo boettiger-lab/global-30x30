@@ -228,6 +228,12 @@ data:
             proxy_buffering off;
         }
 
+        # The IUCN species explorer lives in /iucn/; a relative redirect keeps https.
+        location = /iucn {
+            absolute_redirect off;
+            return 301 /iucn/;
+        }
+
         location / {
             try_files $uri $uri/ /index.html;
             add_header Cache-Control "no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0";

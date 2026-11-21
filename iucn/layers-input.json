@@ -1,0 +1,318 @@
+{
+  "catalog": "https://s3-west.nrp-nautilus.io/public-data/stac/catalog.json",
+  "titiler_url": "https://titiler.nrp-nautilus.io",
+  "auto_approve": true,
+  "theme": "light",
+  "default_basemap": "plain",
+  "geocoder": {
+    "provider": "nominatim",
+    "search_box": false
+  },
+  "sidebar": {
+    "enabled": true
+  },
+  "header": {
+    "enabled": true,
+    "title": "IUCN Species Explorer",
+    "nav": [
+      {
+        "label": "30×30 explorer",
+        "href": "/",
+        "external": false
+      },
+      {
+        "label": "SDM builder",
+        "href": "/sdm/",
+        "external": false
+      },
+      {
+        "label": "GitHub",
+        "href": "https://github.com/boettiger-lab/global-30x30"
+      }
+    ]
+  },
+  "view": {
+    "center": [
+      -4,
+      39
+    ],
+    "zoom": 4.5
+  },
+  "welcome": {
+    "message": "Search a species in the card above to see its IUCN range, its GBIF records and how much of its range is protected. The settings and charts follow the species you choose, and you can ask about it here.",
+    "examples": [
+      "Show the Pebas stubfoot toad.",
+      "How much of the jaguar's range is strictly protected?",
+      "Which threatened amphibians share most of this species' range?",
+      "Which countries hold most of this species' GBIF records, and how does that compare with its IUCN range?"
+    ]
+  },
+  "plugins": [
+    {
+      "url": "https://cdn.jsdelivr.net/gh/SchmidtDSE/glen@v4.1.0/core/plugins/mcp.js",
+      "options": {
+        "servers": [
+          {
+            "url": "https://duckdb-mcp.nrp-nautilus.io/mcp",
+            "prompt": "geospatial-analyst"
+          }
+        ]
+      }
+    },
+    {
+      "url": "https://cdn.jsdelivr.net/gh/SchmidtDSE/glen@v4.1.0/core/plugins/controls.js",
+      "options": {
+        "controls": [
+          {
+            "id": "species",
+            "label": "Species",
+            "token": "SPECIES",
+            "control": "select",
+            "options": [
+              {
+                "value": "12520",
+                "label": "Lynx pardinus (Iberian Lynx)",
+                "tokens": {
+                  "SPECIES_NAME": "Lynx pardinus"
+                }
+              }
+            ]
+          },
+          {
+            "id": "range",
+            "label": "Range",
+            "token": "RANGE",
+            "control": "segmented",
+            "options": [
+              {
+                "value": "likely",
+                "label": "Extant and possibly extant",
+                "tokens": {
+                  "PRESENCE": "1, 2, 3"
+                }
+              },
+              {
+                "value": "extant",
+                "label": "Extant only",
+                "tokens": {
+                  "PRESENCE": "1"
+                }
+              }
+            ]
+          },
+          {
+            "id": "counted",
+            "label": "Protection counted",
+            "token": "COUNTED",
+            "control": "segmented",
+            "options": [
+              {
+                "value": "pa",
+                "label": "Protected areas",
+                "tokens": {
+                  "OECM": "0"
+                }
+              },
+              {
+                "value": "pa_oecm",
+                "label": "Protected areas and OECMs",
+                "tokens": {
+                  "OECM": "1"
+                }
+              }
+            ]
+          },
+          {
+            "id": "since",
+            "label": "Occurrence records",
+            "token": "SINCE",
+            "control": "segmented",
+            "options": [
+              {
+                "value": "0",
+                "label": "All years"
+              },
+              {
+                "value": "1970",
+                "label": "Since 1970"
+              },
+              {
+                "value": "2000",
+                "label": "Since 2000"
+              },
+              {
+                "value": "2015",
+                "label": "Since 2015"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "url": "https://cdn.jsdelivr.net/gh/SchmidtDSE/glen@v4.1.0/core/plugins/charts.js",
+      "options": {
+        "charts": [
+          {
+            "chart_id": "protection-by-category",
+            "chart_type": "bar",
+            "title": "Range in protected areas by IUCN management category",
+            "x": "category",
+            "y": "share",
+            "y_label": "Share of range",
+            "format": "pct",
+            "sql": "WITH h0s AS (SELECT DISTINCT h0 FROM read_parquet('s3://public-iucn/iucn-ranges-2025/species-h0-index.parquet') WHERE id_no = {{SPECIES}}),\nsrc AS (SELECT native_res, h8, h6, h5 FROM read_parquet('s3://public-iucn/iucn-ranges-2025/hex/h0=*/data_0.parquet', hive_partitioning = true) WHERE h0 IN (SELECT h0 FROM h0s) AND id_no = {{SPECIES}} AND presence IN ({{PRESENCE}}) AND origin IN (1, 2)),\nnr AS (SELECT CASE WHEN min(native_res) >= 8 THEN 8 WHEN min(native_res) >= 6 THEN 6 ELSE 5 END AS r FROM src),\nrng AS (SELECT DISTINCT CASE (SELECT r FROM nr) WHEN 8 THEN h8 WHEN 6 THEN h6 ELSE h5 END AS cell FROM src),\npa AS (SELECT h8, min(CASE IUCN_CAT WHEN 'Ia' THEN 1 WHEN 'Ib' THEN 2 WHEN 'II' THEN 3 WHEN 'III' THEN 4 WHEN 'IV' THEN 5 WHEN 'V' THEN 6 WHEN 'VI' THEN 7 ELSE 8 END) AS k FROM read_parquet('s3://public-wdpa/wdpa/hex/h0=*/data_0.parquet', hive_partitioning = true) WHERE h0 IN (SELECT h0 FROM h0s) AND STATUS <> 'Proposed' AND DESIG_ENG <> 'UNESCO-MAB Biosphere Reserve' AND h3_cell_to_parent(h8, (SELECT r FROM nr)) IN (SELECT cell FROM rng) GROUP BY h8),\noe AS (SELECT DISTINCT h8, 9 AS k FROM read_parquet('s3://public-wdpa/wdoecm-may-2026/hex/h0=*/data_0.parquet', hive_partitioning = true) WHERE {{OECM}} = 1 AND h0 IN (SELECT h0 FROM h0s) AND h3_cell_to_parent(h8, (SELECT r FROM nr)) IN (SELECT cell FROM rng) AND h8 NOT IN (SELECT h8 FROM pa)),\ntot AS (SELECT count(*) * pow(7, 8 - (SELECT r FROM nr)) AS n FROM rng),\ncls AS (SELECT k FROM pa UNION ALL SELECT k FROM oe)\nSELECT CASE k WHEN 1 THEN 'Ia strict nature reserve' WHEN 2 THEN 'Ib wilderness area' WHEN 3 THEN 'II national park' WHEN 4 THEN 'III natural monument' WHEN 5 THEN 'IV habitat or species management area' WHEN 6 THEN 'V protected landscape or seascape' WHEN 7 THEN 'VI sustainable use area' WHEN 8 THEN 'No IUCN category' ELSE 'OECM' END AS category, count(*) / (SELECT n FROM tot) AS share FROM cls GROUP BY k ORDER BY k"
+          },
+          {
+            "chart_id": "records-by-decade",
+            "chart_type": "bar",
+            "title": "GBIF records by decade",
+            "x": "decade",
+            "y": "records",
+            "y_label": "Records",
+            "format": "int",
+            "sql": "SELECT ((\"year\" // 10) * 10)::VARCHAR || 's' AS decade, count(*) AS records FROM read_parquet('s3://public-gbif/2026-09/hex/h0=*/data_0.parquet', hive_partitioning = true) WHERE h0 IN (SELECT h0 FROM read_parquet('s3://public-gbif/2026-09/species-h0-index.parquet') WHERE species = '{{SPECIES_NAME}}') AND species = '{{SPECIES_NAME}}' AND NOT list_has_any(issue, ['ZERO_COORDINATE', 'COORDINATE_INVALID', 'COORDINATE_OUT_OF_RANGE', 'COUNTRY_COORDINATE_MISMATCH']) AND coalesce(occurrencestatus, 'PRESENT') <> 'ABSENT' AND basisofrecord NOT IN ('FOSSIL_SPECIMEN', 'LIVING_SPECIMEN') AND \"year\" IS NOT NULL AND \"year\" >= {{SINCE}} GROUP BY \"year\" // 10 ORDER BY \"year\" // 10"
+          },
+          {
+            "chart_id": "records-by-country",
+            "chart_type": "bar",
+            "title": "GBIF records by country",
+            "x": "country",
+            "y": "records",
+            "y_label": "Records",
+            "format": "int",
+            "sql": "SELECT coalesce(countrycode, 'Unknown') AS country, count(*) AS records FROM read_parquet('s3://public-gbif/2026-09/hex/h0=*/data_0.parquet', hive_partitioning = true) WHERE h0 IN (SELECT h0 FROM read_parquet('s3://public-gbif/2026-09/species-h0-index.parquet') WHERE species = '{{SPECIES_NAME}}') AND species = '{{SPECIES_NAME}}' AND NOT list_has_any(issue, ['ZERO_COORDINATE', 'COORDINATE_INVALID', 'COORDINATE_OUT_OF_RANGE', 'COUNTRY_COORDINATE_MISMATCH']) AND coalesce(occurrencestatus, 'PRESENT') <> 'ABSENT' AND basisofrecord NOT IN ('FOSSIL_SPECIMEN', 'LIVING_SPECIMEN') AND \"year\" IS NOT NULL AND \"year\" >= {{SINCE}} GROUP BY 1 ORDER BY 2 DESC LIMIT 12"
+          }
+        ]
+      }
+    },
+    "https://cdn.jsdelivr.net/gh/SchmidtDSE/glen@v4.1.0/core/plugins/hex.js",
+    {
+      "url": "species.js",
+      "options": {
+        "control": "species"
+      }
+    }
+  ],
+  "collections": [
+    {
+      "collection_id": "wdpa",
+      "collection_url": "https://s3-west.nrp-nautilus.io/public-wdpa/wdpa/stac-collection.json",
+      "assets": [
+        {
+          "id": "wdpa-pmtiles",
+          "display_name": "Protected areas",
+          "group": "Protected and conserved areas",
+          "visible": true,
+          "default_style": {
+            "fill-color": [
+              "match",
+              [
+                "get",
+                "IUCN_CAT"
+              ],
+              [
+                "Ia",
+                "Ib",
+                "II"
+              ],
+              "#e8a33d",
+              "#5b8cc0"
+            ],
+            "fill-opacity": 0.35
+          },
+          "outline_style": {
+            "line-color": [
+              "match",
+              [
+                "get",
+                "IUCN_CAT"
+              ],
+              [
+                "Ia",
+                "Ib",
+                "II"
+              ],
+              "#b9771a",
+              "#3c6a99"
+            ],
+            "line-width": 0.5
+          },
+          "tooltip_fields": [
+            "NAME_ENG",
+            "DESIG_ENG",
+            "IUCN_CAT",
+            "STATUS",
+            "ISO3"
+          ]
+        }
+      ]
+    },
+    {
+      "collection_id": "wdoecm-may-2026",
+      "collection_url": "https://s3-west.nrp-nautilus.io/public-wdpa/wdoecm-may-2026/stac-collection.json",
+      "assets": [
+        {
+          "id": "wdoecm-pmtiles",
+          "display_name": "OECMs",
+          "group": "Protected and conserved areas",
+          "visible": false,
+          "default_style": {
+            "fill-color": "#4db6ac",
+            "fill-opacity": 0.35
+          },
+          "tooltip_fields": [
+            "NAME_ENG",
+            "DESIG_ENG",
+            "STATUS",
+            "ISO3"
+          ]
+        }
+      ]
+    },
+    {
+      "collection_id": "overture-divisions-countries-2026-02-18",
+      "collection_url": "https://s3-west.nrp-nautilus.io/public-overturemaps/2026-02-18.0/countries/stac-collection.json",
+      "group": {
+        "name": "Administrative boundaries",
+        "collapsed": true
+      },
+      "assets": [
+        {
+          "id": "countries-pmtiles",
+          "display_name": "Countries",
+          "visible": false,
+          "default_style": {
+            "fill-color": "#000000",
+            "fill-opacity": 0
+          },
+          "outline_style": {
+            "line-color": "#555555",
+            "line-width": 0.8
+          }
+        }
+      ]
+    },
+    {
+      "collection_id": "iucn-ranges-2025",
+      "collection_url": "https://s3-west.nrp-nautilus.io/public-iucn/iucn-ranges-2025/stac-collection.json",
+      "assets": []
+    },
+    {
+      "collection_id": "iucn-taxonomy-2025",
+      "collection_url": "https://s3-west.nrp-nautilus.io/public-iucn/taxonomy/stac-collection.json",
+      "assets": []
+    },
+    {
+      "collection_id": "gbif-derived",
+      "collection_url": "https://s3-west.nrp-nautilus.io/public-gbif/stac-collection.json",
+      "assets": []
+    },
+    {
+      "collection_id": "inaturalist-ranges",
+      "collection_url": "https://s3-west.nrp-nautilus.io/public-inat/stac-collection.json",
+      "assets": []
+    }
+  ],
+  "export": true
+}

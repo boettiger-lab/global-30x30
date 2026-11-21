@@ -4,6 +4,8 @@ A geo-agent configuration for exploring the spatial and social context of the **
 
 Inspired by the analysis in Fajardo et al. 2026, *Social implications of the 30×30 global conservation target* (Nature Communications, [doi:10.1038/s41467-026-71860-8](https://doi.org/10.1038/s41467-026-71860-8)). See [`coverage.md`](coverage.md) for which of that paper's analyses can and cannot be reproduced from the current STAC catalog.
 
+A second app, the IUCN species explorer, is served at `/iucn/`: pick any species with an IUCN range map to see its range, GBIF records, Red List assessment and how much of its range is protected. See [`iucn/README.md`](iucn/README.md).
+
 ## Layers
 
 - **WDPA December 2025** — current global protected areas
@@ -20,6 +22,8 @@ Inspired by the analysis in Fajardo et al. 2026, *Social implications of the 30�
 index.html          ← HTML shell — loads core JS/CSS from CDN
 layers-input.json   ← STAC collections + LLM settings + welcome examples
 system-prompt.md    ← LLM system prompt (30×30 framing + caveats)
+iucn/               ← IUCN species explorer (glen core + controls and charts plugins)
+sdm/                ← species distribution model builder
 k8s/                ← Kubernetes deployment manifests (optional)
 ```
 

@@ -36,6 +36,7 @@ spec:
           cp /tmp/repo/layers-input.json /usr/share/nginx/html/
           cp /tmp/repo/system-prompt.md /usr/share/nginx/html/
           cp -r /tmp/repo/sdm /usr/share/nginx/html/
+          cp -r /tmp/repo/iucn /usr/share/nginx/html/
         volumeMounts:
         - name: website-content
           mountPath: /usr/share/nginx/html
@@ -79,6 +80,8 @@ spec:
           # Client-side config: no secrets, only ${MCP_SERVER_URL}
           envsubst '$${MCP_SERVER_URL}' < /config/config.template.json \
             > /usr/share/nginx/html/config.json
+          # The IUCN species explorer at /iucn/ reads the same config.
+          cp /usr/share/nginx/html/config.json /usr/share/nginx/html/iucn/config.json
           # Server-side nginx config: substitutes ${PROXY_KEY} into the
           # Authorization header used by the /api/llm/ reverse proxy.
           # Limit envsubst to just ${PROXY_KEY} so nginx's own $uri /
