@@ -24,7 +24,7 @@ const OCC_COLOR = '#1f4e9c';
 const IUCN_COLOR = '#e66101';
 const IUCN_HEX = 's3://public-iucn/iucn-ranges-2025/hex/h0=*/data_0.parquet';
 const IUCN_INDEX = 's3://public-iucn/iucn-ranges-2025/species-h0-index.parquet';
-const IUCN_POLY = 's3://public-iucn/iucn-ranges-2025.parquet';
+const IUCN_TAXONOMY = 's3://public-iucn/taxonomy/iucn-taxonomy.parquet';
 const GBIF_HEX = 's3://public-gbif/2026-09/hex/h0=*/data_0.parquet';
 const OBIS_HEX = 's3://public-obis/2026-09-09/hex/h0=*/data_0.parquet';
 const CHELSA_HEX = 's3://public-bioclimate/chelsa-2-1/baseline-1981-2010/hex/h0=*/data_0.parquet';
@@ -407,8 +407,9 @@ async function findIucn(name) {
                          WHERE sci_name = ${sqlStr(name)} OR split_part(sci_name, ' ', 2) = ${sqlStr(epithet)})
             SELECT i.id_no, i.sci_name, i.sci_name = ${sqlStr(name)} AS exact,
                    any_value(t.common_name_en) AS common, any_value(t.latest_category_code) AS cat
-            FROM idx i LEFT JOIN (SELECT id_no, common_name_en, latest_category_code FROM read_parquet('${IUCN_POLY}')
-                                  WHERE sci_name IN (SELECT sci_name FROM idx)) t USING (id_no)
+            FROM idx i
+            -- Some names also carry an older, superseded id (issue #75); keep only ids that are current Red List taxa.
+            JOIN (SELECT sis_taxon_id AS id_no, common_name_en, latest_category_code FROM read_parquet('${IUCN_TAXONOMY}')) t USING (id_no)
             GROUP BY ALL ORDER BY exact DESC LIMIT 5`);
         if (seq !== iucnSeq) return;
         const exact = rows.find(r => r.sci_name === name);

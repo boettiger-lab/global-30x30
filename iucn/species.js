@@ -161,12 +161,9 @@ const plugin = {
 
         const tokens = () => bus.tokens();
         const rangeSrc = (id, presence) => `
-            idx AS (SELECT id_no, sci_name, h0 FROM read_parquet('${paths.index}')),
-            ids AS (SELECT DISTINCT id_no FROM idx WHERE sci_name IN
-                        (SELECT sci_name FROM read_parquet('${paths.index}') WHERE id_no = ${Number(id)})),
-            h0s AS (SELECT DISTINCT h0 FROM idx WHERE id_no IN (SELECT id_no FROM ids)),
+            h0s AS (SELECT DISTINCT h0 FROM read_parquet('${paths.index}') WHERE id_no = ${Number(id)}),
             src AS (SELECT native_res, h8, h7, h6, h5, h4 FROM read_parquet('${paths.hex}', hive_partitioning = true)
-                    WHERE h0 IN (SELECT h0 FROM h0s) AND id_no IN (SELECT id_no FROM ids)
+                    WHERE h0 IN (SELECT h0 FROM h0s) AND id_no = ${Number(id)}
                       AND presence IN (${presence}) AND origin IN (1, 2))`;
 
         /** Range cells at a resolution fit for drawing: finer for small ranges. */

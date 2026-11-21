@@ -14,7 +14,7 @@ A Land / Marine switch chooses the realm. Marine models (a prototype on the serv
 
 Occurrences come either from GBIF or from an uploaded GeoJSON of points (a feature property `presence: 0` marks a true absence; up to 50,000 points), sent to `fit_sdm` as coordinates. Choosing a GBIF species previews its records on the map with the server's filters, and reports how many the coordinate-uncertainty filter would drop.
 
-When the IUCN Red List has a range map for the species (IUCN 2025, matched by name, or by epithet when the genus differs), its outline is drawn, and after a fit the page reports the share of the modelled range inside it, the share of it modelled as suitable within the study area, and the AUC of suitability against it. The IUCN range is never included in exports.
+When the IUCN Red List has a range map for the species (IUCN 2025, matched by name, or by epithet when the genus differs, and using only ids that are current Red List taxa; 337 names also carry an older, superseded range from before a species split, which is skipped, see issue #75), its outline is drawn, and after a fit the page reports the share of the modelled range inside it, the share of it modelled as suitable within the study area, and the AUC of suitability against it. The IUCN range is never included in exports.
 
 Results export as a .zip: a README with the model summary and data citations, the request, the server summary, the map layers as GeoJSON, optionally the full-resolution prediction parquet files, and `reproduce.py` / `reproduce.R`, which call the MCP server directly and read the predictions with DuckDB.
 
