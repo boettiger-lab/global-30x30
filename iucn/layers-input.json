@@ -201,9 +201,9 @@
       "assets": [
         {
           "id": "wdpa-pmtiles",
-          "display_name": "Protected areas",
+          "display_name": "All protected areas",
           "group": "Protected and conserved areas",
-          "visible": true,
+          "visible": false,
           "default_style": {
             "fill-color": [
               "match",
