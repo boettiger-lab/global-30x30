@@ -70,3 +70,11 @@ the species occupies now, not certain loss: the realized limit understates toler
 for small ranges, and the measure leaves out habitat, land use and dispersal. The
 catalogue has no future land-use layers, so the tab does not project habitat change as
 Map of Life does.
+
+The Habitat tab also gives the STAR threat abatement score (Mair et al. 2021): 100 times
+the species' Red List weight (NT 1, VU 2, EN 3, CR 4; LC 0), spread over its area of
+habitat, and split into the parts in protected areas, strict protected areas and the
+rest. STAR also divides the score among threats by scope and severity, but the taxonomy
+table keeps only threat codes, so that split is not shown; the restoration score needs
+past habitat loss and is not computed. This is calculated from Red List data under its
+non-commercial terms and is not the official STAR layer distributed through IBAT.

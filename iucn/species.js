@@ -65,6 +65,9 @@ const CATEGORIES = {
     DD: ['Data Deficient', '#d1d1c6', '#1a1a1a'],
 };
 
+// STAR category weights (Mair et al. 2021); other categories are not scored.
+const STAR_WEIGHT = { LC: 0, NT: 1, VU: 2, EN: 3, CR: 4 };
+
 const COLORS = { range: '#7cb342', rangeLine: '#33691e', occ: '#7b4fc9', strict: '#e8a33d', other: '#5b8cc0', oecm: '#4db6ac', none: '#e6e6e0', loss: '#a0522d', aoh: '#1b5e20', exposed: '#c62828' };
 const RANGE_LAYER = 'iucn-range';
 const PA_LAYER = 'protected-in-range';
@@ -286,6 +289,7 @@ const plugin = {
                        FROM (SELECT count(*) * pow(7, 8 - (SELECT r FROM nr)) AS n FROM rng)),
                 disp AS (SELECT h3_cell_to_parent(h9, (SELECT r FROM dr)) AS c, sum(hk) AS k FROM j WHERE inband AND hk > 0 GROUP BY 1)
                 SELECT (SELECT lo FROM tx) AS elev_lo, (SELECT hi FROM tx) AS elev_hi,
+                       (SELECT threat_codes FROM read_parquet('${paths.taxonomy}') WHERE sis_taxon_id = ${Number(id)}) AS threats,
                        (SELECT list(code ORDER BY code) FROM codes) AS codes,
                        (SELECT list(DISTINCT iucn_habitat_name) FROM xw) AS habitats,
                        (SELECT count(*) FROM codes WHERE code NOT IN (SELECT iucn_habitat_code FROM xw)) AS codes_off_map,
@@ -654,7 +658,41 @@ const plugin = {
         }
 
         function renderHabitat() {
-            $('sp-habitat').innerHTML = `<h4 class="sp-h">Area of habitat</h4>${aohSection()}<h4 class="sp-h">Tree cover loss</h4>${treeSection()}`;
+            $('sp-habitat').innerHTML = `<h4 class="sp-h">Area of habitat</h4>${aohSection()}`
+                + `<h4 class="sp-h">STAR threat abatement</h4>${starSection()}<h4 class="sp-h">Tree cover loss</h4>${treeSection()}`;
+        }
+
+        /** STAR threat abatement score of the species and its split over protected and unprotected habitat. */
+        function starNumbers() {
+            const a = state.aoh, cat = state.taxon?.cat;
+            const w = STAR_WEIGHT[cat];
+            if (!a || a.error || w == null) return { weight: w ?? null };
+            const aoh = Number(a.aoh_km2) || 0;
+            const withOecm = tokens().OECM === '1';
+            const prot = aoh ? (a.strict_km2 + a.other_km2 + (withOecm ? a.oecm_km2 : 0)) / aoh : null;
+            const total = 100 * w;
+            return { weight: w, total, protected: prot == null ? null : total * prot, unprotected: prot == null ? null : total * (1 - prot), strict: aoh ? total * a.strict_km2 / aoh : null };
+        }
+
+        function starSection() {
+            const cat = state.taxon?.cat;
+            if (STAR_WEIGHT[cat] == null) return `<p class="sp-muted">STAR scores species assessed as Least Concern to Critically Endangered; ${esc(CATEGORIES[cat]?.[0] || 'unassessed')} species are left out.</p>`;
+            if (!state.aoh) return '<div class="sp-loading">Waiting for the area of habitat…</div>';
+            if (state.aoh.error || !(state.aoh.habitats || []).length) return '<p class="sp-muted">STAR needs the area of habitat, which is not available for this species.</p>';
+            const st = starNumbers();
+            if (!st.weight) return '<p class="sp-muted">Least Concern species have a STAR weight of 0, so this species adds nothing to STAR scores.</p>';
+            const n = x => (x == null ? '—' : x.toFixed(x < 10 ? 1 : 0));
+            return `
+                <div class="sp-tiles">
+                    <div class="sp-tile"><div class="sp-tile-label">Threat abatement score</div><div class="sp-tile-value">${n(st.total)}</div></div>
+                    <div class="sp-tile"><div class="sp-tile-label">In protected areas</div><div class="sp-tile-value">${n(st.protected)}<small> ${n(st.strict)} in strict</small></div></div>
+                    <div class="sp-tile"><div class="sp-tile-label">Outside protected areas</div><div class="sp-tile-value">${n(st.unprotected)}</div></div>
+                    <div class="sp-tile"><div class="sp-tile-label">Recorded threats</div><div class="sp-tile-value">${num((state.aoh.threats || []).length)}</div></div>
+                </div>
+                <p class="sp-note">STAR (Species Threat Abatement and Restoration; Mair et al. 2021) gives each species a threat abatement score of 100 times its Red List weight (Near Threatened 1, Vulnerable 2, Endangered 3, Critically Endangered 4) and spreads it over its area of habitat, so any place's share of the score is its share of the habitat.
+                The split shows how much of the potential to reduce this species' extinction risk lies in protected areas and how much outside them; the area of habitat layer shows where.
+                STAR also divides the score among threats by their scope and severity, but these holdings carry only the threat codes, so the split by threat is not shown, and the restoration score needs the habitat lost in the past, which is not mapped here.
+                Calculated here from Red List data under its non-commercial terms; it is not the official STAR layer published through IBAT.</p>`;
         }
 
         function aohSection() {
@@ -1123,6 +1161,7 @@ const plugin = {
                         share_strict: aohKm ? a.strict_km2 / aohKm : null, share_other_protected: aohKm ? a.other_km2 / aohKm : null,
                         share_oecm_only: aohKm ? a.oecm_km2 / aohKm : null, oecms_counted: tokens().OECM === '1',
                         target_share: protectionTarget(aohKm),
+                        star_threat_abatement: (() => { const st = starNumbers(); return st.weight == null ? 'not scored (category outside LC to CR)' : { weight: st.weight, total: st.total, in_protected_areas: st.protected, in_strict_protected_areas: st.strict, outside_protected_areas: st.unprotected, threat_codes: a.threats, note: 'STAR_T after Mair et al. 2021 = 100 x Red List weight spread over the AOH; split by threat not available (no scope or severity in the holdings); restoration score not computed; not the official IBAT layer.' }; })(),
                         method: 'Range cells (H3 res 9) whose Lumbierres et al. 2021 habitat class matches the IUCN habitat codes via the Lumbierres crosswalk, and whose Copernicus GLO-90 mean elevation is within the elevation limits (Brooks et al. 2019). Protection as for the range; score target uses the AOH size.',
                     } : (a?.error ? { error: a.error } : null),
                     habitat: !include_habitat ? undefined : h && !h.error ? {
@@ -1138,7 +1177,7 @@ const plugin = {
 
         ctx.addPrompt(`## Species card
 
-The side panel shows one species at a time: the species control (\`${controlId}\`) holds its IUCN \`id_no\` as {{SPECIES}} and its binomial as {{SPECIES_NAME}}. Change species with \`select_species\`, never with \`create_control\`. Read the card's numbers with \`get_species_card\` rather than recomputing them. The map layers \`upload-${RANGE_LAYER}\` (IUCN range), \`upload-${PA_LAYER}\` (protected areas within the range, as H3 cells) and \`upload-${OCC_LAYER}\` (GBIF records) follow the species. The card's Habitat tab gives the area of habitat (layer \`upload-${AOH_LAYER}\`, drawn once the tab is opened) and tree cover loss in the range; read both with \`get_species_card\` and \`include_habitat: true\`. The Projection tab gives warming and climate exposure of the range under the scenario in {{SSP}} (layer \`upload-${EXPOSURE_LAYER}\`); read it with \`include_projection: true\`.`);
+The side panel shows one species at a time: the species control (\`${controlId}\`) holds its IUCN \`id_no\` as {{SPECIES}} and its binomial as {{SPECIES_NAME}}. Change species with \`select_species\`, never with \`create_control\`. Read the card's numbers with \`get_species_card\` rather than recomputing them. The map layers \`upload-${RANGE_LAYER}\` (IUCN range), \`upload-${PA_LAYER}\` (protected areas within the range, as H3 cells) and \`upload-${OCC_LAYER}\` (GBIF records) follow the species. The card's Habitat tab gives the area of habitat, the STAR threat abatement score and its split over protected and unprotected habitat (layer \`upload-${AOH_LAYER}\`, drawn once the tab is opened) and tree cover loss in the range; read both with \`get_species_card\` and \`include_habitat: true\`. The Projection tab gives warming and climate exposure of the range under the scenario in {{SSP}} (layer \`upload-${EXPOSURE_LAYER}\`); read it with \`include_projection: true\`.`);
 
         /* ── First species ───────────────────────────────────────────── */
 
