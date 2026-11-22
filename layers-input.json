@@ -505,7 +505,7 @@
   ],
   "plugins": [
     {
-      "url": "https://cdn.jsdelivr.net/gh/SchmidtDSE/glen@v4.0.6/core/plugins/mcp.js",
+      "url": "https://cdn.jsdelivr.net/gh/SchmidtDSE/glen@v4.2.0/core/plugins/mcp.js",
       "options": {
         "servers": [
           {
@@ -519,10 +519,10 @@
         ]
       }
     },
-    "https://cdn.jsdelivr.net/gh/SchmidtDSE/glen@v4.0.6/core/plugins/hex.js",
-    "https://cdn.jsdelivr.net/gh/SchmidtDSE/glen@v4.0.6/core/plugins/draw.js",
+    "https://cdn.jsdelivr.net/gh/SchmidtDSE/glen@v4.2.0/core/plugins/hex.js",
+    "https://cdn.jsdelivr.net/gh/SchmidtDSE/glen@v4.2.0/core/plugins/draw.js",
     {
-      "url": "https://cdn.jsdelivr.net/gh/SchmidtDSE/glen@v4.0.6/core/plugins/uploads.js",
+      "url": "https://cdn.jsdelivr.net/gh/SchmidtDSE/glen@v4.2.0/core/plugins/uploads.js",
       "options": {}
     }
   ],
