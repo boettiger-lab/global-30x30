@@ -74,7 +74,12 @@ Map of Life does.
 The Habitat tab also gives the STAR threat abatement score (Mair et al. 2021): 100 times
 the species' Red List weight (NT 1, VU 2, EN 3, CR 4; LC 0), spread over its area of
 habitat, and split into the parts in protected areas, strict protected areas and the
-rest. STAR also divides the score among threats by scope and severity, but the taxonomy
-table keeps only threat codes, so that split is not shown; the restoration score needs
+rest. The score is also divided among the threats in the species' assessment. Each
+threat's share is the population decline expected from its scope and severity (Mair et
+al. 2021, Supplementary Table 2), over the sum for all the species' threats. Unknown
+scope counts as Majority and unknown severity as Slow, significant declines. Threats that
+are past and unlikely to return, or expected to cause no decline, are left out. Scopes,
+severities and timings come from `s3://public-iucn/taxonomy/iucn-threats.parquet`, read
+from the Red List API (boettiger-lab/data-workflows#1017). The restoration score needs
 past habitat loss and is not computed. This is calculated from Red List data under its
 non-commercial terms and is not the official STAR layer distributed through IBAT.

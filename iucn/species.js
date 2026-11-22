@@ -26,6 +26,7 @@ const PATHS = {
     index: 's3://public-iucn/iucn-ranges-2025/species-h0-index.parquet',
     hex: 's3://public-iucn/iucn-ranges-2025/hex/h0=*/data_0.parquet',
     taxonomy: 's3://public-iucn/taxonomy/iucn-taxonomy.parquet',
+    threats: 's3://public-iucn/taxonomy/iucn-threats.parquet',
     gbif: 's3://public-gbif/2026-09/hex/h0=*/data_0.parquet',
     gbifIndex: 's3://public-gbif/2026-09/species-h0-index.parquet',
     wdpa: 's3://public-wdpa/wdpa/hex/h0=*/data_0.parquet',
@@ -67,6 +68,60 @@ const CATEGORIES = {
 
 // STAR category weights (Mair et al. 2021); other categories are not scored.
 const STAR_WEIGHT = { LC: 0, NT: 1, VU: 2, EN: 3, CR: 4 };
+
+// Expected % population decline from a threat's scope and severity (Mair et al. 2021,
+// Supplementary Table 2, after Garnett et al. 2019). Unknown or missing scope counts as
+// Majority and unknown severity as Slow, significant declines (Mair et al. 2021, SI).
+const STAR_DECLINE = {
+    whole:    { 'very rapid declines': 63, 'rapid declines': 24, 'slow, significant declines': 10, 'negligible declines': 1, 'no decline': 0, 'causing/could cause fluctuations': 10 },
+    majority: { 'very rapid declines': 52, 'rapid declines': 18, 'slow, significant declines': 9, 'negligible declines': 0, 'no decline': 0, 'causing/could cause fluctuations': 9 },
+    minority: { 'very rapid declines': 24, 'rapid declines': 7, 'slow, significant declines': 5, 'negligible declines': 0, 'no decline': 0, 'causing/could cause fluctuations': 5 },
+};
+
+// First level of the IUCN Threats Classification Scheme (version 3.3).
+const THREAT_CLASSES = {
+    1: 'Residential and commercial development',
+    2: 'Agriculture and aquaculture',
+    3: 'Energy production and mining',
+    4: 'Transportation and service corridors',
+    5: 'Biological resource use',
+    6: 'Human intrusions and disturbance',
+    7: 'Natural system modifications',
+    8: 'Invasive species, genes and diseases',
+    9: 'Pollution',
+    10: 'Geological events',
+    11: 'Climate change and severe weather',
+    12: 'Other threats',
+};
+
+/**
+ * Each threat's share of a species' STAR score: its expected decline over the sum for all the
+ * species' threats. Threats that are past and unlikely to return, or not expected to cause a
+ * decline, are left out (Mair et al. 2021).
+ */
+function starThreatShares(threats) {
+    const kept = [];
+    for (const t of threats || []) {
+        if (/^past, unlikely/i.test(t.timing || '')) continue;
+        const sc = (t.scope || '').toLowerCase().split(' ')[0];
+        const scope = STAR_DECLINE[sc] ? sc : 'majority';
+        let sev = (t.severity || '').toLowerCase();
+        if (!(sev in STAR_DECLINE.whole)) sev = 'slow, significant declines';
+        const d = STAR_DECLINE[scope][sev];
+        if (d > 0) kept.push({ ...t, decline: d });
+    }
+    const sum = kept.reduce((a, t) => a + t.decline, 0);
+    if (!sum) return { threats: [], classes: [] };
+    for (const t of kept) t.share = t.decline / sum;
+    const byClass = new Map();
+    for (const t of kept) {
+        const k = Number(String(t.threat_code).split('.')[0]);
+        byClass.set(k, (byClass.get(k) || 0) + t.share);
+    }
+    const classes = [...byClass].map(([code, share]) => ({ code, name: THREAT_CLASSES[code] || `Threat class ${code}`, share }))
+        .sort((a, b) => b.share - a.share);
+    return { threats: kept.sort((a, b) => b.share - a.share), classes };
+}
 
 const COLORS = { range: '#7cb342', rangeLine: '#33691e', occ: '#7b4fc9', strict: '#e8a33d', other: '#5b8cc0', oecm: '#4db6ac', none: '#e6e6e0', loss: '#a0522d', aoh: '#1b5e20', exposed: '#c62828' };
 const RANGE_LAYER = 'iucn-range';
@@ -114,7 +169,7 @@ const plugin = {
         const mm = ctx.map;
         const ml = mm.map;
 
-        const state = { taxon: null, stats: null, occ: null, wiki: null, photo: null, habitat: null, aoh: null, proj: null, projPeriod: 1 };
+        const state = { taxon: null, stats: null, occ: null, wiki: null, photo: null, habitat: null, aoh: null, threats: null, proj: null, projPeriod: 1 };
         const taxa = new Map();   // id → taxonomy row
         const seq = { info: 0, range: 0, occ: 0, stats: 0, habitat: 0 };
         let habitatKey = null, habitatJob = null;
@@ -210,6 +265,14 @@ const plugin = {
                        (SELECT count(*) FILTER (lvl = 1) FROM pa) AS other,
                        (SELECT count(*) FROM oe WHERE h8 NOT IN (SELECT h8 FROM pa)) AS oecm`);
             return row || null;
+        }
+
+        /** Threats in the species' Red List assessment with their scope, severity and timing. */
+        async function threats(id) {
+            return db.query(`
+                SELECT threat_code, threat_name, timing, scope, severity
+                FROM read_parquet('${paths.threats}') WHERE sis_taxon_id = ${Number(id)}
+                ORDER BY threat_code`);
         }
 
         /**
@@ -688,8 +751,32 @@ const plugin = {
                 </div>
                 <p class="sp-note">STAR (Species Threat Abatement and Restoration; Mair et al. 2021) gives each species a threat abatement score of 100 times its Red List weight (Near Threatened 1, Vulnerable 2, Endangered 3, Critically Endangered 4) and spreads it over its area of habitat, so any place's share of the score is its share of the habitat.
                 The split shows how much of the potential to reduce this species' extinction risk lies in protected areas and how much outside them; the area of habitat layer shows where.
-                STAR also divides the score among threats by their scope and severity, but these holdings carry only the threat codes, so the split by threat is not shown, and the restoration score needs the habitat lost in the past, which is not mapped here.
-                Calculated here from Red List data under its non-commercial terms; it is not the official STAR layer published through IBAT.</p>`;
+                The restoration score needs the habitat lost in the past, which is not mapped here.
+                Calculated here from Red List data under its non-commercial terms; it is not the official STAR layer published through IBAT.</p>
+                ${starThreatSection(st)}`;
+        }
+
+        /** STAR score of the species divided among the threat classes in its assessment. */
+        function starThreatSection(st) {
+            const t = state.threats;
+            if (t == null) return '<div class="sp-loading">Reading the threats in the assessment…</div>';
+            if (t.error) return '<p class="sp-note">The split by threat is not available: the table of threat scopes and severities could not be read.</p>';
+            const sh = starThreatShares(t);
+            if (!sh.classes.length) return '<p class="sp-note">None of the threats in this assessment is expected to cause a decline, so the score is not split by threat.</p>';
+            const n = x => x.toFixed(x < 10 ? 1 : 0);
+            const rows = sh.classes.map(c => `
+                <tr><th>${esc(c.name)}</th>
+                    <td><span class="sp-share"><i style="width:${(100 * c.share).toFixed(1)}%"></i></span></td>
+                    <td class="sp-num">${n(st.total * c.share)}</td></tr>`).join('');
+            const top = sh.threats.slice(0, 6).map(x => `
+                <tr><th>${esc(x.threat_name || x.threat_code)}</th><td>${esc(x.scope || 'Unknown')}; ${esc((x.severity || 'Unknown').toLowerCase())}; ${esc((x.timing || 'Unknown').toLowerCase())}</td><td class="sp-num">${n(st.total * x.share)}</td></tr>`).join('');
+            return `
+                <table class="sp-table sp-threats"><caption>Score by threat class</caption>${rows}</table>
+                <table class="sp-table sp-threats"><caption>Largest single threats</caption>${top}</table>
+                <p class="sp-note">Each threat's share of the score is the population decline expected from its scope and severity, over the sum for all the species' threats (Mair et al. 2021, after Garnett et al. 2019).
+                Unknown scope counts as a majority of the population and unknown severity as slow, significant declines.
+                Threats that are past and unlikely to return, or not expected to cause a decline, are left out.
+                Scopes and severities come from the Red List API.</p>`;
         }
 
         function aohSection() {
@@ -998,7 +1085,12 @@ const plugin = {
             const s = ++seq.habitat;
             state.habitat = null;
             state.aoh = null;
+            state.threats = null;
             renderHabitat();
+            const thr = threats(id)
+                .then(rows => { if (s === seq.habitat) state.threats = rows || []; })
+                .catch(err => { if (s === seq.habitat) state.threats = { error: err.message }; })
+                .finally(() => { if (s === seq.habitat) renderHabitat(); });
             const tree = habitat(id, presence)
                 .then(h => { if (s === seq.habitat) state.habitat = h || { error: 'no range cells' }; })
                 .catch(err => { if (s === seq.habitat) state.habitat = { error: err.message }; })
@@ -1007,7 +1099,7 @@ const plugin = {
                 .then(a => { if (s === seq.habitat) state.aoh = a || { error: 'no range cells' }; })
                 .catch(err => { if (s === seq.habitat) state.aoh = { error: err.message }; })
                 .finally(() => { if (s === seq.habitat) { renderHabitat(); drawHabitat(); } });
-            habitatJob = Promise.all([tree, aoh]);
+            habitatJob = Promise.all([tree, aoh, thr]);
             return habitatJob;
         }
 
@@ -1034,7 +1126,7 @@ const plugin = {
         }
 
         function resetHabitat() {
-            habitatKey = null; habitatJob = null; state.habitat = null; state.aoh = null; seq.habitat++;
+            habitatKey = null; habitatJob = null; state.habitat = null; state.aoh = null; state.threats = null; seq.habitat++;
             ml.getSource(layerId(AOH_LAYER))?.setData({ type: 'FeatureCollection', features: [] });
             if (habitatOpen()) loadHabitat(); else renderHabitat();
         }
@@ -1158,7 +1250,7 @@ const plugin = {
                         share_strict: aohKm ? a.strict_km2 / aohKm : null, share_other_protected: aohKm ? a.other_km2 / aohKm : null,
                         share_oecm_only: aohKm ? a.oecm_km2 / aohKm : null, oecms_counted: tokens().OECM === '1',
                         target_share: protectionTarget(aohKm),
-                        star_threat_abatement: (() => { const st = starNumbers(); return st.weight == null ? 'not scored (category outside LC to CR)' : { weight: st.weight, total: st.total, in_protected_areas: st.protected, in_strict_protected_areas: st.strict, outside_protected_areas: st.unprotected, threat_codes: a.threats, note: 'STAR_T after Mair et al. 2021 = 100 x Red List weight spread over the AOH; split by threat not available (no scope or severity in the holdings); restoration score not computed; not the official IBAT layer.' }; })(),
+                        star_threat_abatement: (() => { const st = starNumbers(); return st.weight == null ? 'not scored (category outside LC to CR)' : { weight: st.weight, total: st.total, in_protected_areas: st.protected, in_strict_protected_areas: st.strict, outside_protected_areas: st.unprotected, threat_codes: a.threats, by_threat_class: (() => { const t = state.threats; if (!Array.isArray(t)) return 'not available'; return starThreatShares(t).classes.map(c => ({ code: c.code, threat_class: c.name, share: +c.share.toFixed(3), score: +(st.total * c.share).toFixed(1) })); })(), note: 'STAR_T after Mair et al. 2021 = 100 x Red List weight spread over the AOH; split by threat uses the scope x severity decline table (Mair SI Table 2), unknown scope = Majority, unknown severity = Slow significant, past/unlikely to return and no-decline threats excluded; restoration score not computed; not the official IBAT layer.' }; })(),
                         method: 'Range cells (H3 res 9) whose Lumbierres et al. 2021 habitat class matches the IUCN habitat codes via the Lumbierres crosswalk, and whose Copernicus GLO-90 mean elevation is within the elevation limits (Brooks et al. 2019). Protection as for the range; score target uses the AOH size.',
                     } : (a?.error ? { error: a.error } : null),
                     habitat: !include_habitat ? undefined : h && !h.error ? {
