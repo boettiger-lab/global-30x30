@@ -6,6 +6,9 @@
 #sidebar { overflow-y: auto; }
 #controls, #report { flex: none; }
 #report { overflow: visible; }
+/* glen-charts caps the settings at --controls-max (40% of the sidebar) and
+   scrolls them inside that box, which left a short box on phones */
+#controls { max-height: none; overflow: visible; }
 
 select, input[type="number"], input[type="text"] {
     font: inherit; padding: 5px 8px; border: 1px solid var(--line-strong);
